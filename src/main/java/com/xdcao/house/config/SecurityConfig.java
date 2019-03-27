@@ -1,6 +1,7 @@
 package com.xdcao.house.config;
 
 import com.xdcao.house.security.AuthProvider;
+import com.xdcao.house.security.LoginAuthFailHandler;
 import com.xdcao.house.security.LoginUrlEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -45,6 +46,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .formLogin()
                 .loginProcessingUrl("/login")/*配置角色登录处理入口*/
+                .failureHandler(authFailHandler())/*验证失败处理器*/
                 .and()
                 .logout()
                 .logoutUrl("/logout")
@@ -61,6 +63,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public LoginUrlEntryPoint urlEntryPoint() {
         return new LoginUrlEntryPoint("/user/login");
+    }
+
+    @Bean
+    public LoginAuthFailHandler authFailHandler() {
+        return new LoginAuthFailHandler(urlEntryPoint());
     }
 
 
