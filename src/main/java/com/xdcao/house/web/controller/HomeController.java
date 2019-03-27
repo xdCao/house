@@ -1,4 +1,4 @@
-package com.xdcao.house.web;
+package com.xdcao.house.web.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

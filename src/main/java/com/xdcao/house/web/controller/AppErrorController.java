@@ -1,4 +1,4 @@
-package com.xdcao.house.web;
+package com.xdcao.house.web.controller;
 
 import com.xdcao.house.base.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;

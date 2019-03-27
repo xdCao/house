@@ -1,4 +1,4 @@
-package com.xdcao.house.web.user;
+package com.xdcao.house.web.controller.user;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
