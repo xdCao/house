@@ -1,8 +1,7 @@
 package com.xdcao.house.security;
 
 import com.xdcao.house.entity.User;
-import com.xdcao.house.service.IUserService;
-import com.xdcao.house.service.UserService;
+import com.xdcao.house.service.user.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationProvider;

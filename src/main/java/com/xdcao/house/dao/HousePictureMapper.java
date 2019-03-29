@@ -27,4 +27,6 @@ public interface HousePictureMapper {
     int updateByPrimaryKeySelective(HousePicture record);
 
     int updateByPrimaryKey(HousePicture record);
+
+    int batchInsert(List<HousePicture> pictures);
 }

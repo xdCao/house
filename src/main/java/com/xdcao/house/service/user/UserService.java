@@ -1,4 +1,4 @@
-package com.xdcao.house.service;
+package com.xdcao.house.service.user;
 
 import com.xdcao.house.dao.RoleMapper;
 import com.xdcao.house.dao.UserMapper;
@@ -6,6 +6,7 @@ import com.xdcao.house.entity.Role;
 import com.xdcao.house.entity.RoleExample;
 import com.xdcao.house.entity.User;
 import com.xdcao.house.entity.UserExample;
+import com.xdcao.house.service.user.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;

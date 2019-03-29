@@ -176,4 +176,16 @@
       name = #{name,jdbcType=VARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <insert id="insertBatch" parameterType="java.util.List">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into house_tag (house_id, name)
+    values
+    <foreach collection="list" separator="," index="index" item="houseTag">
+      (#{houseTag.houseId,jdbcType=INTEGER}, #{houseTag.name,jdbcType=VARCHAR})
+    </foreach>
+
+  </insert>
 </mapper>

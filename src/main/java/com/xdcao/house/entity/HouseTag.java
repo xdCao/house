@@ -7,6 +7,11 @@ public class HouseTag {
 
     private String name;
 
+    public HouseTag(Integer houseId, String name) {
+        this.houseId = houseId;
+        this.name = name;
+    }
+
     public Integer getId() {
         return id;
     }

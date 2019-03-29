@@ -1,4 +1,4 @@
-package com.xdcao.house.service.house;
+package com.xdcao.house.service.house.impl;
 
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
@@ -6,6 +6,7 @@ import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
 import com.qiniu.util.StringMap;
+import com.xdcao.house.service.house.IQiNiuService;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

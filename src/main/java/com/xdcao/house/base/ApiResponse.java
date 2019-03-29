@@ -15,7 +15,8 @@ public class ApiResponse {
         INTERNAL_SERVER_ERROR(500, "Internal server error"),
         NON_VALID_PARAM(40005, "Non valid params"),
         NOT_SUPPORTED_OPERATION(40006, "Not supported operation"),
-        NOT_LOGIN(50000, "Not Login");
+        NOT_LOGIN(50000, "Not Login"),
+        NOT_FOUND(404,"Not found");
 
         private int code;
         private String message;

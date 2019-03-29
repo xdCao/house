@@ -2,11 +2,10 @@ package com.xdcao.house;
 
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
-import com.qiniu.util.StringMap;
 import com.xdcao.house.dao.UserMapper;
 import com.xdcao.house.entity.User;
 import com.xdcao.house.entity.UserExample;
-import com.xdcao.house.service.house.QiniuService;
+import com.xdcao.house.service.house.impl.QiniuService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

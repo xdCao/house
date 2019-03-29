@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xdcao.house.dao.SupportAddressMapper">
+  <resultMap id="BaseResultMap" type="com.xdcao.house.entity.SupportAddress">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="belong_to" jdbcType="VARCHAR" property="belongTo" />
+    <result column="en_name" jdbcType="VARCHAR" property="enName" />
+    <result column="cn_name" jdbcType="VARCHAR" property="cnName" />
+    <result column="level" jdbcType="VARCHAR" property="level" />
+    <result column="baidu_map_lng" jdbcType="DOUBLE" property="baiduMapLng" />
+    <result column="baidu_map_lat" jdbcType="DOUBLE" property="baiduMapLat" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, belong_to, en_name, cn_name, level, baidu_map_lng, baidu_map_lat
+  </sql>
+  <select id="selectByExample" parameterType="com.xdcao.house.entity.SupportAddressExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from support_address
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from support_address
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from support_address
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.xdcao.house.entity.SupportAddressExample">
+    delete from support_address
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.xdcao.house.entity.SupportAddress">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into support_address (belong_to, en_name, cn_name, 
+      level, baidu_map_lng, baidu_map_lat
+      )
+    values (#{belongTo,jdbcType=VARCHAR}, #{enName,jdbcType=VARCHAR}, #{cnName,jdbcType=VARCHAR}, 
+      #{level,jdbcType=VARCHAR}, #{baiduMapLng,jdbcType=DOUBLE}, #{baiduMapLat,jdbcType=DOUBLE}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.xdcao.house.entity.SupportAddress">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into support_address
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="belongTo != null">
+        belong_to,
+      </if>
+      <if test="enName != null">
+        en_name,
+      </if>
+      <if test="cnName != null">
+        cn_name,
+      </if>
+      <if test="level != null">
+        level,
+      </if>
+      <if test="baiduMapLng != null">
+        baidu_map_lng,
+      </if>
+      <if test="baiduMapLat != null">
+        baidu_map_lat,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="belongTo != null">
+        #{belongTo,jdbcType=VARCHAR},
+      </if>
+      <if test="enName != null">
+        #{enName,jdbcType=VARCHAR},
+      </if>
+      <if test="cnName != null">
+        #{cnName,jdbcType=VARCHAR},
+      </if>
+      <if test="level != null">
+        #{level,jdbcType=VARCHAR},
+      </if>
+      <if test="baiduMapLng != null">
+        #{baiduMapLng,jdbcType=DOUBLE},
+      </if>
+      <if test="baiduMapLat != null">
+        #{baiduMapLat,jdbcType=DOUBLE},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.xdcao.house.entity.SupportAddressExample" resultType="java.lang.Long">
+    select count(*) from support_address
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update support_address
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.belongTo != null">
+        belong_to = #{record.belongTo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.enName != null">
+        en_name = #{record.enName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cnName != null">
+        cn_name = #{record.cnName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.level != null">
+        level = #{record.level,jdbcType=VARCHAR},
+      </if>
+      <if test="record.baiduMapLng != null">
+        baidu_map_lng = #{record.baiduMapLng,jdbcType=DOUBLE},
+      </if>
+      <if test="record.baiduMapLat != null">
+        baidu_map_lat = #{record.baiduMapLat,jdbcType=DOUBLE},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update support_address
+    set id = #{record.id,jdbcType=INTEGER},
+      belong_to = #{record.belongTo,jdbcType=VARCHAR},
+      en_name = #{record.enName,jdbcType=VARCHAR},
+      cn_name = #{record.cnName,jdbcType=VARCHAR},
+      level = #{record.level,jdbcType=VARCHAR},
+      baidu_map_lng = #{record.baiduMapLng,jdbcType=DOUBLE},
+      baidu_map_lat = #{record.baiduMapLat,jdbcType=DOUBLE}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.xdcao.house.entity.SupportAddress">
+    update support_address
+    <set>
+      <if test="belongTo != null">
+        belong_to = #{belongTo,jdbcType=VARCHAR},
+      </if>
+      <if test="enName != null">
+        en_name = #{enName,jdbcType=VARCHAR},
+      </if>
+      <if test="cnName != null">
+        cn_name = #{cnName,jdbcType=VARCHAR},
+      </if>
+      <if test="level != null">
+        level = #{level,jdbcType=VARCHAR},
+      </if>
+      <if test="baiduMapLng != null">
+        baidu_map_lng = #{baiduMapLng,jdbcType=DOUBLE},
+      </if>
+      <if test="baiduMapLat != null">
+        baidu_map_lat = #{baiduMapLat,jdbcType=DOUBLE},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.xdcao.house.entity.SupportAddress">
+    update support_address
+    set belong_to = #{belongTo,jdbcType=VARCHAR},
+      en_name = #{enName,jdbcType=VARCHAR},
+      cn_name = #{cnName,jdbcType=VARCHAR},
+      level = #{level,jdbcType=VARCHAR},
+      baidu_map_lng = #{baiduMapLng,jdbcType=DOUBLE},
+      baidu_map_lat = #{baiduMapLat,jdbcType=DOUBLE}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

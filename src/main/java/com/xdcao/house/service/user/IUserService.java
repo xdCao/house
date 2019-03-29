@@ -1,4 +1,4 @@
-package com.xdcao.house.service;
+package com.xdcao.house.service.user;
 
 import com.xdcao.house.entity.Role;
 import com.xdcao.house.entity.User;

@@ -27,4 +27,6 @@ public interface HouseTagMapper {
     int updateByPrimaryKeySelective(HouseTag record);
 
     int updateByPrimaryKey(HouseTag record);
+
+    int insertBatch(List<HouseTag> houseTags);
 }
