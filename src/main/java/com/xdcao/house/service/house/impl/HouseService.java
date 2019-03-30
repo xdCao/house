@@ -5,6 +5,7 @@ import com.xdcao.house.dao.HouseDetailMapper;
 import com.xdcao.house.dao.HouseMapper;
 import com.xdcao.house.dao.HouseTagMapper;
 import com.xdcao.house.entity.*;
+import com.xdcao.house.service.ServiceMultiRet;
 import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.house.IHouseService;
 import com.xdcao.house.service.house.IPictureService;
@@ -12,6 +13,7 @@ import com.xdcao.house.service.house.ISubwayService;
 import com.xdcao.house.web.dto.HouseDTO;
 import com.xdcao.house.web.dto.HouseDetailDTO;
 import com.xdcao.house.web.dto.HousePictureDTO;
+import com.xdcao.house.web.form.DataTableSearch;
 import com.xdcao.house.web.form.HouseForm;
 import com.xdcao.house.web.form.PhotoForm;
 import org.modelmapper.ModelMapper;
@@ -92,6 +94,18 @@ public class HouseService implements IHouseService {
 
 
         return new ServiceResult<HouseDTO>(true, null, houseDTO);
+    }
+
+    @Override
+    public ServiceMultiRet<HouseDTO> adminQuery(DataTableSearch searchBody) {
+        List<HouseDTO> results = new ArrayList<>();
+        List<House> houses = houseMapper.selectByExample(new HouseExample());
+        houses.forEach(house -> {
+            HouseDTO houseDTO = modelMapper.map(house, HouseDTO.class);
+            houseDTO.setCover(cdn_prefix+house.getCover());
+            results.add(houseDTO);
+        });
+        return new ServiceMultiRet<>(results.size(), results);
     }
 
     private void insertTags(List<HouseTag> tags) {

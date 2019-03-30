@@ -3,10 +3,12 @@ package com.xdcao.house.web.controller.admin;
 import com.google.gson.Gson;
 import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
+import com.xdcao.house.base.ApiDataTableResponse;
 import com.xdcao.house.base.ApiResponse;
 import com.xdcao.house.entity.Subway;
 import com.xdcao.house.entity.SubwayStation;
 import com.xdcao.house.entity.SupportAddress;
+import com.xdcao.house.service.ServiceMultiRet;
 import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.house.IAddressService;
 import com.xdcao.house.service.house.IHouseService;
@@ -15,6 +17,7 @@ import com.xdcao.house.service.house.ISubwayService;
 import com.xdcao.house.web.controller.house.SupportAddressDTO;
 import com.xdcao.house.web.dto.HouseDTO;
 import com.xdcao.house.web.dto.QiniuPutRet;
+import com.xdcao.house.web.form.DataTableSearch;
 import com.xdcao.house.web.form.HouseForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -62,6 +65,11 @@ public class AdminController {
         return "admin/welcome";
     }
 
+    @GetMapping("/house/list")
+    public String houseListPage() {
+        return "admin/house-list";
+    }
+
     @GetMapping("/login")
     public String adminLoginPage() {
         return "admin/login";
@@ -71,6 +79,21 @@ public class AdminController {
     public String houseAddPage() {
         return "admin/house-add";
     }
+
+    @PostMapping("/houses")
+    @ResponseBody
+    public ApiDataTableResponse houses(@ModelAttribute DataTableSearch searchBody) {
+
+        ServiceMultiRet<HouseDTO> serviceMultiRet = houseService.adminQuery(searchBody);
+        ApiDataTableResponse response = new ApiDataTableResponse();
+        response.setData(serviceMultiRet.getResult());
+        response.setRecordsFiltered(serviceMultiRet.getTotal());
+        response.setRecordsTotal(serviceMultiRet.getTotal());
+        response.setDraw(searchBody.getDraw());
+        return response;
+
+    }
+
 
     @PostMapping(value = "/upload/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
