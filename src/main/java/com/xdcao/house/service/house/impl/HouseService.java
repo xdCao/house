@@ -1,5 +1,8 @@
 package com.xdcao.house.service.house.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.xdcao.house.base.HouseStatus;
 import com.xdcao.house.base.LoginUserUtil;
 import com.xdcao.house.dao.HouseDetailMapper;
 import com.xdcao.house.dao.HouseMapper;
@@ -16,6 +19,7 @@ import com.xdcao.house.web.dto.HousePictureDTO;
 import com.xdcao.house.web.form.DataTableSearch;
 import com.xdcao.house.web.form.HouseForm;
 import com.xdcao.house.web.form.PhotoForm;
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -98,14 +102,47 @@ public class HouseService implements IHouseService {
 
     @Override
     public ServiceMultiRet<HouseDTO> adminQuery(DataTableSearch searchBody) {
+
+        long count = houseMapper.countByExample(new HouseExample());
+
+        PageHelper.startPage(searchBody.getStart()/searchBody.getLength()+1, searchBody.getLength());
         List<HouseDTO> results = new ArrayList<>();
-        List<House> houses = houseMapper.selectByExample(new HouseExample());
-        houses.forEach(house -> {
+        HouseExample example = new HouseExample();
+        HouseExample.Criteria criteria = example.createCriteria();
+        if (StringUtils.isNotBlank(searchBody.getCity())) {
+            criteria.andCityEnNameEqualTo(searchBody.getCity());
+        }
+        if (StringUtils.isNotBlank(searchBody.getTitle())) {
+            criteria.andTitleLike("%"+searchBody.getTitle()+"%");
+        }
+        if (searchBody.getCreateTimeMin()!=null) {
+            criteria.andCreateTimeGreaterThanOrEqualTo(searchBody.getCreateTimeMin());
+        }
+        if (searchBody.getCreateTimeMax()!=null) {
+            criteria.andCreateTimeLessThanOrEqualTo(searchBody.getCreateTimeMax());
+        }
+        if (searchBody.getStatus()!=null) {
+            criteria.andStatusEqualTo(searchBody.getStatus());
+        }
+        criteria.andStatusNotEqualTo(HouseStatus.DELETED.getValue());
+        criteria.andAdminIdEqualTo(LoginUserUtil.getLoginUserId());
+
+        String orderBy = searchBody.getOrderBy();
+        if (orderBy.equals("createTime")) {
+            orderBy = "create_time";
+        }
+        if (orderBy.equals("watchTimes")) {
+            orderBy = "watch_times";
+        }
+        example.setOrderByClause(orderBy+" "+searchBody.getDirection());
+        List<House> houses = houseMapper.selectByExample(example);
+        PageInfo<House> pageInfo = new PageInfo<>(houses);
+        pageInfo.getList().forEach(house -> {
             HouseDTO houseDTO = modelMapper.map(house, HouseDTO.class);
-            houseDTO.setCover(cdn_prefix+house.getCover());
+            houseDTO.setCover(cdn_prefix+house. getCover());
             results.add(houseDTO);
         });
-        return new ServiceMultiRet<>(results.size(), results);
+        return new ServiceMultiRet<>((int)count, results);
     }
 
     private void insertTags(List<HouseTag> tags) {
