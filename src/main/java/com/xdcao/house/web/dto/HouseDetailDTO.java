@@ -14,13 +14,13 @@ public class HouseDetailDTO {
 
     private int rentWay;
 
-    private Long adminId;
+    private Integer adminId;
 
     private String address;
 
-    private Long subwayLineId;
+    private Integer subwayLineId;
 
-    private Long subwayStationId;
+    private Integer subwayStationId;
 
     private String subwayLineName;
 
@@ -66,11 +66,11 @@ public class HouseDetailDTO {
         this.rentWay = rentWay;
     }
 
-    public Long getAdminId() {
+    public Integer getAdminId() {
         return adminId;
     }
 
-    public void setAdminId(Long adminId) {
+    public void setAdminId(Integer adminId) {
         this.adminId = adminId;
     }
 
@@ -82,19 +82,19 @@ public class HouseDetailDTO {
         this.address = address;
     }
 
-    public Long getSubwayLineId() {
+    public Integer getSubwayLineId() {
         return subwayLineId;
     }
 
-    public void setSubwayLineId(Long subwayLineId) {
+    public void setSubwayLineId(Integer subwayLineId) {
         this.subwayLineId = subwayLineId;
     }
 
-    public Long getSubwayStationId() {
+    public Integer getSubwayStationId() {
         return subwayStationId;
     }
 
-    public void setSubwayStationId(Long subwayStationId) {
+    public void setSubwayStationId(Integer subwayStationId) {
         this.subwayStationId = subwayStationId;
     }
 

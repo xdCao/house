@@ -67,8 +67,8 @@ public class HouseService implements IHouseService {
         house.setLastUpdateTime(now);
         house.setAdminId(LoginUserUtil.getLoginUserId());
         house.setStatus(0);
-        int houseId = houseMapper.insert(house);
-        house.setId(houseId);
+        houseMapper.insert(house);
+        Integer houseId = house.getId();
 
         HouseDetail detail = new HouseDetail();
         detail = wrapDetailInfo(houseForm, houseId, detail);
@@ -144,6 +144,47 @@ public class HouseService implements IHouseService {
         });
         return new ServiceMultiRet<>((int)count, results);
     }
+
+    @Override
+    public ServiceResult<HouseDTO> findCompleteOne(Integer id) {
+        House house = houseMapper.selectByPrimaryKey(id);
+        if (house == null) {
+            return new ServiceResult<>(false,"not found");
+        }
+        HouseDetailDTO houseDetail = findHouseDetailByHouseId(id);
+        List<HouseTag> tags = findTagsByHouseId(id);
+        List<String> tagStrs = new ArrayList<>();
+        tags.forEach(tag -> {
+            tagStrs.add(tag.getName());
+        });
+        List<HousePictureDTO> pictureDTOS = pictureService.findAllByHouseId(id);
+        HouseDTO houseDTO = modelMapper.map(house, HouseDTO.class);
+        houseDTO.setHouseDetail(houseDetail);
+        houseDTO.setPictures(pictureDTOS);
+        houseDTO.setTags(tagStrs);
+
+        return new ServiceResult<>(true, "ok", houseDTO);
+    }
+
+    @Override
+    public HouseDetailDTO findHouseDetailByHouseId(Integer houseId) {
+        HouseDetailExample example = new HouseDetailExample();
+        example.createCriteria().andHouseIdEqualTo(houseId);
+        List<HouseDetail> houseDetails = houseDetailMapper.selectByExample(example);
+        if (houseDetails != null && !houseDetails.isEmpty()) {
+            return modelMapper.map(houseDetails.get(0), HouseDetailDTO.class);
+        }
+        return null;
+    }
+
+    @Override
+    public List<HouseTag> findTagsByHouseId(Integer houseId) {
+        HouseTagExample example = new HouseTagExample();
+        example.createCriteria().andHouseIdEqualTo(houseId);
+        List<HouseTag> houseTags = houseTagMapper.selectByExample(example);
+        return houseTags;
+    }
+
 
     private void insertTags(List<HouseTag> tags) {
         houseTagMapper.insertBatch(tags);

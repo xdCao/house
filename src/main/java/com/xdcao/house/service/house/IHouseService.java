@@ -1,9 +1,12 @@
 package com.xdcao.house.service.house;
 
+import com.xdcao.house.entity.HouseDetail;
+import com.xdcao.house.entity.HouseTag;
 import com.xdcao.house.entity.SupportAddress;
 import com.xdcao.house.service.ServiceMultiRet;
 import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.web.dto.HouseDTO;
+import com.xdcao.house.web.dto.HouseDetailDTO;
 import com.xdcao.house.web.form.DataTableSearch;
 import com.xdcao.house.web.form.HouseForm;
 
@@ -20,5 +23,11 @@ public interface IHouseService {
     ServiceResult<HouseDTO> save(HouseForm houseForm);
 
     ServiceMultiRet<HouseDTO> adminQuery(DataTableSearch searchBody);
+
+    ServiceResult<HouseDTO> findCompleteOne(Integer id);
+
+    HouseDetailDTO findHouseDetailByHouseId(Integer houseId);
+
+    List<HouseTag> findTagsByHouseId(Integer houseId);
 
 }

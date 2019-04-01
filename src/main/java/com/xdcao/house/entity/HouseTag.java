@@ -7,6 +7,12 @@ public class HouseTag {
 
     private String name;
 
+    public HouseTag(Long id, Integer houseId, String name) {
+        this.id = (int)(long)id;
+        this.houseId = houseId;
+        this.name = name;
+    }
+
     public HouseTag(Integer houseId, String name) {
         this.houseId = houseId;
         this.name = name;

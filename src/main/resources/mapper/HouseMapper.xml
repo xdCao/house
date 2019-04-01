@@ -118,7 +118,7 @@
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.xdcao.house.entity.House">
+  <insert id="insert" useGeneratedKeys="true" parameterType="com.xdcao.house.entity.House">
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
       SELECT LAST_INSERT_ID()
     </selectKey>

@@ -1,6 +1,7 @@
 package com.xdcao.house.service.house;
 
 import com.xdcao.house.entity.HousePicture;
+import com.xdcao.house.web.dto.HousePictureDTO;
 
 import java.util.List;
 
@@ -14,4 +15,5 @@ public interface IPictureService {
 
     void batchInsertPictures(List<HousePicture> pictures);
 
+    List<HousePictureDTO> findAllByHouseId(Integer id);
 }

@@ -16,12 +16,14 @@ import com.xdcao.house.service.house.IQiNiuService;
 import com.xdcao.house.service.house.ISubwayService;
 import com.xdcao.house.web.controller.house.SupportAddressDTO;
 import com.xdcao.house.web.dto.HouseDTO;
+import com.xdcao.house.web.dto.HouseDetailDTO;
 import com.xdcao.house.web.dto.QiniuPutRet;
 import com.xdcao.house.web.form.DataTableSearch;
 import com.xdcao.house.web.form.HouseForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -80,6 +82,33 @@ public class AdminController {
         return "admin/house-add";
     }
 
+    @GetMapping("/house/edit")
+    public String houseEditPage(@RequestParam(value = "id") Integer id, Model model) {
+        if (id == null || id < 1) {
+            return "404";
+        }
+        ServiceResult<HouseDTO> completeOne = houseService.findCompleteOne(id);
+        if (!completeOne.isSuccess()) {
+            return "404";
+        }
+        HouseDTO result = completeOne.getResult();
+        model.addAttribute("house", result);
+
+        Map<SupportAddress.Level, SupportAddressDTO> cityAndRegion = addressService.findCityAndRegion(result.getCityEnName(), result.getRegionEnName());
+        model.addAttribute("city", cityAndRegion.get(SupportAddress.Level.CITY));
+        model.addAttribute("region", cityAndRegion.get(SupportAddress.Level.REGION));
+
+        HouseDetailDTO houseDetail = result.getHouseDetail();
+        if (houseDetail != null) {
+            Subway subwayline = subwayService.findSubwaylineById(houseDetail.getSubwayLineId());
+            SubwayStation station = subwayService.findStationById(houseDetail.getSubwayStationId());
+            model.addAttribute("subway", subwayline);
+            model.addAttribute("station", station);
+        }
+
+        return "admin/house-edit";
+    }
+
     @PostMapping("/houses")
     @ResponseBody
     public ApiDataTableResponse houses(@ModelAttribute DataTableSearch searchBody) {
@@ -121,11 +150,11 @@ public class AdminController {
                 QiniuPutRet ret = gson.fromJson(response.bodyString(), QiniuPutRet.class);
                 return new ApiResponse(ret);
             } else {
-                return new ApiResponse(response.statusCode,response.getInfo(),null);
+                return new ApiResponse(response.statusCode, response.getInfo(), null);
             }
         } catch (QiniuException ex) {
             Response response = ex.response;
-            return new ApiResponse(response.statusCode,response.getInfo(),null);
+            return new ApiResponse(response.statusCode, response.getInfo(), null);
         } catch (IOException e) {
             e.printStackTrace();
             return new ApiResponse(ApiResponse.Status.INTERNAL_SERVER_ERROR);
@@ -138,14 +167,14 @@ public class AdminController {
     @ResponseBody
     public ApiResponse addHouse(@Valid @ModelAttribute("form-house-add") HouseForm houseForm, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return new ApiResponse(ApiResponse.Status.BAD_REQUEST.getCode(),bindingResult.getAllErrors().get(0).getDefaultMessage(),null);
+            return new ApiResponse(ApiResponse.Status.BAD_REQUEST.getCode(), bindingResult.getAllErrors().get(0).getDefaultMessage(), null);
         }
 
         if (houseForm.getPhotos() == null || houseForm.getCover() == null) {
-            return new ApiResponse(ApiResponse.Status.BAD_REQUEST.getCode(),"必须上传图片",null);
+            return new ApiResponse(ApiResponse.Status.BAD_REQUEST.getCode(), "必须上传图片", null);
         }
 
-        Map<SupportAddress.Level, SupportAddressDTO> addressMap = addressService.findCityAndRegion(houseForm.getCityEnName(),houseForm.getRegionEnName());
+        Map<SupportAddress.Level, SupportAddressDTO> addressMap = addressService.findCityAndRegion(houseForm.getCityEnName(), houseForm.getRegionEnName());
         if (addressMap.keySet().size() != 2) {
             return new ApiResponse(ApiResponse.Status.NON_VALID_PARAM);
         }
