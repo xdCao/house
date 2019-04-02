@@ -255,6 +255,27 @@ public class HouseService implements IHouseService {
         return new ServiceResult(true);
     }
 
+    @Override
+    @Transactional
+    public ServiceResult updateStatus(Integer id, int status) {
+        House house = houseMapper.selectByPrimaryKey(id);
+        if (house == null) {
+            return new ServiceResult(false);
+        }
+        if (house.getStatus() == status) {
+            return new ServiceResult(false);
+        }
+        if (house.getStatus().equals(HouseStatus.RENTED.getValue())) {
+            return new ServiceResult(false );
+        }
+        if (house.getStatus().equals(HouseStatus.DELETED.getValue())) {
+            return new ServiceResult(false);
+        }
+        house.setStatus(status);
+        houseMapper.updateByPrimaryKey(house);
+        return new ServiceResult(true);
+    }
+
     @Transactional
     public void deleteByHouseIdAndTag(Integer houseId, String tag) {
         HouseTagExample example = new HouseTagExample();

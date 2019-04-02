@@ -35,4 +35,6 @@ public interface IHouseService {
     ServiceResult removeTag(Integer houseId, String tag);
 
     ServiceResult addTag(Integer houseId, String tag);
+
+    ServiceResult updateStatus(Integer id, int status);
 }

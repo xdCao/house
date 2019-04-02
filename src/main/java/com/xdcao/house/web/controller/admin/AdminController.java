@@ -5,6 +5,8 @@ import com.qiniu.common.QiniuException;
 import com.qiniu.http.Response;
 import com.xdcao.house.base.ApiDataTableResponse;
 import com.xdcao.house.base.ApiResponse;
+import com.xdcao.house.base.HouseStatus;
+import com.xdcao.house.base.Operation;
 import com.xdcao.house.entity.Subway;
 import com.xdcao.house.entity.SubwayStation;
 import com.xdcao.house.entity.SupportAddress;
@@ -248,6 +250,36 @@ public class AdminController {
             return new ApiResponse(ApiResponse.Status.INTERNAL_SERVER_ERROR);
         }
 
+
+    }
+
+    @PutMapping("/house/operate/{id}/{operation}")
+    @ResponseBody
+    public ApiResponse operateHouse(@PathVariable("id") Integer id, @PathVariable("operation") int operation) {
+        if (id <= 0) {
+            return new ApiResponse(ApiResponse.Status.NON_VALID_PARAM);
+        }
+        ServiceResult result;
+        switch (operation) {
+            case Operation.PASS:
+                result = houseService.updateStatus(id, HouseStatus.PASSES.getValue());
+                break;
+            case Operation.DELETE:
+                result = houseService.updateStatus(id, HouseStatus.DELETED.getValue());
+                break;
+            case Operation.PULL_OUT:
+                result = houseService.updateStatus(id, HouseStatus.NOT_AUDITED.getValue());
+                break;
+            case Operation.RENT:
+                result = houseService.updateStatus(id, HouseStatus.RENTED.getValue());
+                break;
+                default:
+                    return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
+        }
+        if (result.isSuccess()) {
+            return new ApiResponse();
+        }
+        return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
 
     }
 
