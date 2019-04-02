@@ -4,6 +4,9 @@ package com.xdcao.house.web.dto;
  * Created by xdCao.
  */
 public class HouseDetailDTO {
+
+    private Integer id;
+
     private String description;
 
     private String layoutDesc;
@@ -25,6 +28,14 @@ public class HouseDetailDTO {
     private String subwayLineName;
 
     private String subwayStationName;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getDescription() {
         return description;

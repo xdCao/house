@@ -1,8 +1,6 @@
 package com.xdcao.house.service.house;
 
-import com.xdcao.house.entity.HouseDetail;
 import com.xdcao.house.entity.HouseTag;
-import com.xdcao.house.entity.SupportAddress;
 import com.xdcao.house.service.ServiceMultiRet;
 import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.web.dto.HouseDTO;
@@ -22,6 +20,8 @@ public interface IHouseService {
 
     ServiceResult<HouseDTO> save(HouseForm houseForm);
 
+    ServiceResult update(HouseForm houseForm);
+
     ServiceMultiRet<HouseDTO> adminQuery(DataTableSearch searchBody);
 
     ServiceResult<HouseDTO> findCompleteOne(Integer id);
@@ -30,4 +30,9 @@ public interface IHouseService {
 
     List<HouseTag> findTagsByHouseId(Integer houseId);
 
+    ServiceResult changeCover(Integer cover_id, Integer targetId);
+
+    ServiceResult removeTag(Integer houseId, String tag);
+
+    ServiceResult addTag(Integer houseId, String tag);
 }

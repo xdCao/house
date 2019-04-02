@@ -24,6 +24,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -59,6 +60,7 @@ public class HouseService implements IHouseService {
     private String cdn_prefix;
 
     @Override
+    @Transactional
     public ServiceResult<HouseDTO> save(HouseForm houseForm) {
         House house = new House();
         modelMapper.map(houseForm, house);
@@ -98,6 +100,33 @@ public class HouseService implements IHouseService {
 
 
         return new ServiceResult<HouseDTO>(true, null, houseDTO);
+    }
+
+    @Override
+    @Transactional
+    public ServiceResult update(HouseForm houseForm) {
+        House house = houseMapper.selectByPrimaryKey((int)(long)houseForm.getId());
+        if (house == null) {
+            return new ServiceResult(false, "not found", null);
+        }
+        HouseDetailDTO detail = findHouseDetailByHouseId((int)(long)houseForm.getId());
+        if (detail == null) {
+            return new ServiceResult(false, "not found", null);
+        }
+        HouseDetail houseDetail = modelMapper.map(detail, HouseDetail.class);
+        wrapDetailInfo(houseForm, (int) (long) houseForm.getId(), houseDetail);
+        houseDetailMapper.updateByPrimaryKey(houseDetail);
+        List<HousePicture> pictures = wrapPictures(houseForm, (int) (long) houseForm.getId());
+        pictureService.batchInsertPictures(pictures);
+
+        if (houseForm.getCover() == null) {
+            houseForm.setCover(house.getCover());
+        }
+
+        modelMapper.map(houseForm, house);
+        house.setLastUpdateTime(new Date());
+        houseMapper.updateByPrimaryKey(house);
+        return new ServiceResult(true);
     }
 
     @Override
@@ -185,8 +214,65 @@ public class HouseService implements IHouseService {
         return houseTags;
     }
 
+    @Override
+    @Transactional
+    public ServiceResult changeCover(Integer cover_id, Integer targetId) {
+        House house = houseMapper.selectByPrimaryKey(targetId);
+        if (house == null) {
+            return new ServiceResult(false);
+        }
+        HousePicture picture = pictureService.findOneById(cover_id);
+        if (picture == null) {
+            return new ServiceResult(false);
+        }
+        house.setCover(picture.getPath());
+        houseMapper.updateByPrimaryKey(house);
+        return new ServiceResult(true);
+    }
 
-    private void insertTags(List<HouseTag> tags) {
+    @Override
+    @Transactional
+    public ServiceResult removeTag(Integer houseId, String tag) {
+        List<HouseTag> houseTags = findTagByHouseIdAndTag(houseId, tag);
+        if (houseTags != null && !houseTags.isEmpty()) {
+            deleteByHouseIdAndTag(houseId,tag);
+            return new ServiceResult(true);
+        }
+        return new ServiceResult(false,"not found");
+    }
+
+    @Override
+    @Transactional
+    public ServiceResult addTag(Integer houseId, String tag) {
+        List<HouseTag> tagsByHouseId = findTagsByHouseId(houseId);
+        for (HouseTag houseTag : tagsByHouseId) {
+            if (houseTag.getName().equals(tag)) {
+                return new ServiceResult(false,"Non valid param");
+            }
+        }
+        HouseTag houseTag = new HouseTag(houseId, tag);
+        houseTagMapper.insert(houseTag);
+        return new ServiceResult(true);
+    }
+
+    @Transactional
+    public void deleteByHouseIdAndTag(Integer houseId, String tag) {
+        HouseTagExample example = new HouseTagExample();
+        example.createCriteria().andNameEqualTo(tag).andHouseIdEqualTo(houseId);
+        houseTagMapper.deleteByExample(example);
+    }
+
+
+    private List<HouseTag> findTagByHouseIdAndTag(Integer houseId,String tag) {
+        HouseTagExample example = new HouseTagExample();
+        example.createCriteria().andHouseIdEqualTo(houseId).andNameEqualTo(tag);
+        List<HouseTag> houseTags = houseTagMapper.selectByExample(example);
+        return houseTags;
+    }
+
+
+    @Transactional
+    public void insertTags(List<HouseTag> tags) {
         houseTagMapper.insertBatch(tags);
     }
 

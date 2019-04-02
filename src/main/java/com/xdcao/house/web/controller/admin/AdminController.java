@@ -10,10 +10,7 @@ import com.xdcao.house.entity.SubwayStation;
 import com.xdcao.house.entity.SupportAddress;
 import com.xdcao.house.service.ServiceMultiRet;
 import com.xdcao.house.service.ServiceResult;
-import com.xdcao.house.service.house.IAddressService;
-import com.xdcao.house.service.house.IHouseService;
-import com.xdcao.house.service.house.IQiNiuService;
-import com.xdcao.house.service.house.ISubwayService;
+import com.xdcao.house.service.house.*;
 import com.xdcao.house.web.controller.house.SupportAddressDTO;
 import com.xdcao.house.web.dto.HouseDTO;
 import com.xdcao.house.web.dto.HouseDetailDTO;
@@ -53,6 +50,9 @@ public class AdminController {
 
     @Autowired
     private ISubwayService subwayService;
+
+    @Autowired
+    private IPictureService pictureService;
 
     @Autowired
     private Gson gson;
@@ -108,6 +108,64 @@ public class AdminController {
 
         return "admin/house-edit";
     }
+
+    @PostMapping("/house/edit")
+    @ResponseBody
+    public ApiResponse saveHouse(@Valid @ModelAttribute("form-house-edit") HouseForm houseForm, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return new ApiResponse(ApiResponse.Status.BAD_REQUEST.getCode(),bindingResult.getAllErrors().get(0).getDefaultMessage(),null);
+        }
+        Map<SupportAddress.Level, SupportAddressDTO> cityAndRegion = addressService.findCityAndRegion(houseForm.getCityEnName(), houseForm.getRegionEnName());
+        if (cityAndRegion.keySet().size()!=2) {
+            return new ApiResponse(ApiResponse.Status.NON_VALID_PARAM);
+        }
+        ServiceResult update = houseService.update(houseForm);
+        if (update.isSuccess()) {
+            return new ApiResponse();
+        }
+        return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
+    }
+
+    @PostMapping("/house/cover")
+    @ResponseBody
+    public ApiResponse changeCover(@RequestParam("cover_id") Integer cover_id, @RequestParam("target_id") Integer targetId) {
+        ServiceResult result = houseService.changeCover(cover_id,targetId);
+        if (result.isSuccess()) {
+            return new ApiResponse();
+        }
+        return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
+    }
+
+    @DeleteMapping("/house/photo")
+    @ResponseBody
+    public ApiResponse removePhoto(@RequestParam("id") Integer photoId) {
+        pictureService.removePhotoById(photoId);
+        return new ApiResponse();
+    }
+
+    @DeleteMapping("/house/tag")
+    @ResponseBody
+    public ApiResponse removeTag(@RequestParam("house_id") Integer houseId, @RequestParam("tag") String tag) {
+        ServiceResult result = houseService.removeTag(houseId,tag);
+        if (result.isSuccess()) {
+            return new ApiResponse();
+        }
+        return new ApiResponse(ApiResponse.Status.NOT_FOUND);
+    }
+
+    @PostMapping("/house/tag")
+    @ResponseBody
+    public ApiResponse addTag(@RequestParam("house_id") Integer houseId, @RequestParam("tag") String tag) {
+        ServiceResult result = houseService.addTag(houseId,tag);
+        if (result.isSuccess()) {
+            return new ApiResponse();
+        }
+        return new ApiResponse(ApiResponse.Status.NON_VALID_PARAM);
+    }
+
+
+
+
 
     @PostMapping("/houses")
     @ResponseBody
