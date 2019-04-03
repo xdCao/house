@@ -19,6 +19,7 @@ import com.xdcao.house.web.dto.HousePictureDTO;
 import com.xdcao.house.web.form.DataTableSearch;
 import com.xdcao.house.web.form.HouseForm;
 import com.xdcao.house.web.form.PhotoForm;
+import com.xdcao.house.web.form.RentSearch;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -274,6 +275,28 @@ public class HouseService implements IHouseService {
         house.setStatus(status);
         houseMapper.updateByPrimaryKey(house);
         return new ServiceResult(true);
+    }
+
+    @Override
+    public ServiceMultiRet<HouseDTO> query(RentSearch rentSearch) {
+        PageHelper.startPage(rentSearch.getStart(), rentSearch.getSize());
+        HouseExample example = new HouseExample();
+        example.setOrderByClause("last_update_time desc");
+        example.createCriteria().andStatusEqualTo(HouseStatus.PASSES.getValue())
+        .andCityEnNameEqualTo(rentSearch.getCityEnName());
+
+        List<House> houses = houseMapper.selectByExample(example);
+        PageInfo<House> pageInfo = new PageInfo<>(houses);
+        List<HouseDTO> houseDTOS = new ArrayList<>();
+        pageInfo.getList().forEach(house -> {
+            HouseDTO houseDTO = modelMapper.map(house, HouseDTO.class);
+            HouseDetailDTO houseDetailDTO = findHouseDetailByHouseId(house.getId());
+            houseDTO.setHouseDetail(houseDetailDTO);
+            houseDTO.setCover(cdn_prefix+house.getCover());
+            houseDTOS.add(houseDTO);
+        });
+
+        return new ServiceMultiRet<HouseDTO>((int)pageInfo.getTotal(), houseDTOS);
     }
 
     @Transactional

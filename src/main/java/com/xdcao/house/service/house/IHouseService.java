@@ -7,6 +7,7 @@ import com.xdcao.house.web.dto.HouseDTO;
 import com.xdcao.house.web.dto.HouseDetailDTO;
 import com.xdcao.house.web.form.DataTableSearch;
 import com.xdcao.house.web.form.HouseForm;
+import com.xdcao.house.web.form.RentSearch;
 
 import java.util.List;
 
@@ -37,4 +38,6 @@ public interface IHouseService {
     ServiceResult addTag(Integer houseId, String tag);
 
     ServiceResult updateStatus(Integer id, int status);
+
+    ServiceMultiRet<HouseDTO> query(RentSearch rentSearch);
 }
