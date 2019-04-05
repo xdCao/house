@@ -2,6 +2,7 @@ package com.xdcao.house.service.house.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.xdcao.house.base.HouseSort;
 import com.xdcao.house.base.HouseStatus;
 import com.xdcao.house.base.LoginUserUtil;
 import com.xdcao.house.dao.HouseDetailMapper;
@@ -133,8 +134,6 @@ public class HouseService implements IHouseService {
     @Override
     public ServiceMultiRet<HouseDTO> adminQuery(DataTableSearch searchBody) {
 
-        long count = houseMapper.countByExample(new HouseExample());
-
         PageHelper.startPage(searchBody.getStart()/searchBody.getLength()+1, searchBody.getLength());
         List<HouseDTO> results = new ArrayList<>();
         HouseExample example = new HouseExample();
@@ -172,7 +171,7 @@ public class HouseService implements IHouseService {
             houseDTO.setCover(cdn_prefix+house. getCover());
             results.add(houseDTO);
         });
-        return new ServiceMultiRet<>((int)count, results);
+        return new ServiceMultiRet<>((int)pageInfo.getTotal(), results);
     }
 
     @Override
@@ -281,9 +280,14 @@ public class HouseService implements IHouseService {
     public ServiceMultiRet<HouseDTO> query(RentSearch rentSearch) {
         PageHelper.startPage(rentSearch.getStart(), rentSearch.getSize());
         HouseExample example = new HouseExample();
-        example.setOrderByClause("last_update_time desc");
-        example.createCriteria().andStatusEqualTo(HouseStatus.PASSES.getValue())
-        .andCityEnNameEqualTo(rentSearch.getCityEnName());
+        String orderColumn = HouseSort.getSortKey(rentSearch.getOrderBy());
+        example.setOrderByClause(orderColumn+" "+rentSearch.getOrderDirection());
+        HouseExample.Criteria criteria = example.createCriteria().andStatusEqualTo(HouseStatus.PASSES.getValue())
+                .andCityEnNameEqualTo(rentSearch.getCityEnName());
+
+        if (orderColumn.equals("distance_to_subway")) {
+            criteria.andDistanceToSubwayGreaterThan(-1);
+        }
 
         List<House> houses = houseMapper.selectByExample(example);
         PageInfo<House> pageInfo = new PageInfo<>(houses);
@@ -293,6 +297,14 @@ public class HouseService implements IHouseService {
             HouseDetailDTO houseDetailDTO = findHouseDetailByHouseId(house.getId());
             houseDTO.setHouseDetail(houseDetailDTO);
             houseDTO.setCover(cdn_prefix+house.getCover());
+
+            List<HouseTag> tags = findTagsByHouseId(house.getId());
+            List<String> tagNames = new ArrayList<>();
+            tags.forEach(tag -> {
+                tagNames.add(tag.getName());
+            });
+            houseDTO.setTags(tagNames);
+
             houseDTOS.add(houseDTO);
         });
 

@@ -80,7 +80,7 @@
                                onclick="changeSimpleCondition('regionEnName', '*')">不限</a>
                             <tr th:each="region, regionStat: ${regions}">
                                 <a th:attr="data-bind=${region.enName}" href="javascript:void(0);"
-                                   th:onclick="'changeSimpleCondition(\'regionEnName\', \'' + [[${region.enName}]] + '\')'"
+                                   th:onclick="'javascript:changeSimpleCondition(\'+regionEnName+\', ' + [[${region.enName}]] + ')'"
                                    th:text="${region.cnName}"></a>
                             </tr>
                         </div>
