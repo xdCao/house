@@ -6,7 +6,10 @@ import com.xdcao.house.entity.Role;
 import com.xdcao.house.entity.RoleExample;
 import com.xdcao.house.entity.User;
 import com.xdcao.house.entity.UserExample;
+import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.user.IUserService;
+import com.xdcao.house.web.dto.UserDTO;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
@@ -30,6 +33,9 @@ public class UserService implements IUserService {
     @Autowired
     private RoleMapper roleMapper;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     @Override
     public User findUserByName(String userName) {
         UserExample example = new UserExample();
@@ -44,7 +50,7 @@ public class UserService implements IUserService {
 
             /*给用户加权限*/
             List<GrantedAuthority> authorities = new ArrayList<>();
-            roles.forEach(role -> authorities.add(new SimpleGrantedAuthority("ROLE_"+role.getName())));
+            roles.forEach(role -> authorities.add(new SimpleGrantedAuthority("ROLE_" + role.getName())));
             user.setAuthorityList(authorities);
 
             return user;
@@ -59,5 +65,16 @@ public class UserService implements IUserService {
         example.createCriteria().andUserIdEqualTo(id);
         List<Role> roles = roleMapper.selectByExample(example);
         return roles;
+    }
+
+    @Override
+    public ServiceResult<UserDTO> findById(Long adminId) {
+        User user = userMapper.selectByPrimaryKey(Math.toIntExact(adminId));
+        if (user == null) {
+            return new ServiceResult<>(false);
+        }
+        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+        return new ServiceResult<UserDTO>(true, "ok", userDTO);
+
     }
 }

@@ -2,6 +2,8 @@ package com.xdcao.house.service.user;
 
 import com.xdcao.house.entity.Role;
 import com.xdcao.house.entity.User;
+import com.xdcao.house.service.ServiceResult;
+import com.xdcao.house.web.dto.UserDTO;
 
 import java.util.List;
 
@@ -17,4 +19,5 @@ public interface IUserService {
 
     List<Role> getRolesByUserId(Integer id);
 
+    ServiceResult<UserDTO> findById(Long adminId);
 }
