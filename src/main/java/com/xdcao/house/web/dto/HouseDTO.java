@@ -13,7 +13,8 @@ import java.util.List;
 
 public class HouseDTO implements Serializable {
 
-    private static final long serialVersionUID = 8918735582286008182L;
+//    private static final long serialVersionUID = 8918735582286008182L;
+
     private Long id;
 
     private String title;

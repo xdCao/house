@@ -6,6 +6,7 @@ import com.xdcao.house.dao.UserMapper;
 import com.xdcao.house.entity.User;
 import com.xdcao.house.entity.UserExample;
 import com.xdcao.house.service.house.impl.QiniuService;
+import com.xdcao.house.service.search.ISearchService;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,7 +20,7 @@ import java.util.List;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-@ActiveProfiles("test")
+@ActiveProfiles("te")
 public class HouseApplicationTests {
 
     @Autowired
@@ -27,6 +28,9 @@ public class HouseApplicationTests {
 
     @Autowired
     private QiniuService qiniuService;
+
+    @Autowired
+    private ISearchService searchService;
 
     @Test
     public void contextLoads() {
@@ -60,6 +64,12 @@ public class HouseApplicationTests {
         String key = "FvOuLjhUINpxPd9BcTyHOHDs_WHs";
         Response delete = qiniuService.delete(key);
         assert delete.isOK();
+    }
+
+    @Test
+    public void testIndex() {
+        boolean success = searchService.index(15);
+        assert success;
     }
 
 }

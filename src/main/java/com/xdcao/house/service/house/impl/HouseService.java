@@ -14,6 +14,7 @@ import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.house.IHouseService;
 import com.xdcao.house.service.house.IPictureService;
 import com.xdcao.house.service.house.ISubwayService;
+import com.xdcao.house.service.search.ISearchService;
 import com.xdcao.house.web.dto.HouseDTO;
 import com.xdcao.house.web.dto.HouseDetailDTO;
 import com.xdcao.house.web.dto.HousePictureDTO;
@@ -57,6 +58,9 @@ public class HouseService implements IHouseService {
 
     @Autowired
     private HouseTagMapper houseTagMapper;
+
+    @Autowired
+    private ISearchService searchService;
 
     @Value("${qiniu.cdn.prefix}")
     private String cdn_prefix;
@@ -128,7 +132,20 @@ public class HouseService implements IHouseService {
         modelMapper.map(houseForm, house);
         house.setLastUpdateTime(new Date());
         houseMapper.updateByPrimaryKey(house);
+
+        if (!indexEsAndCheck(house)) return new ServiceResult(false);
+
         return new ServiceResult(true);
+    }
+
+    private boolean indexEsAndCheck(House house) {
+        if (house.getStatus() == HouseStatus.PASSES.getValue()) {
+            boolean index = searchService.index(house.getId());
+            return index;
+        } else {
+            searchService.remove(house.getId());
+            return true;
+        }
     }
 
     @Override
@@ -233,17 +250,33 @@ public class HouseService implements IHouseService {
     @Override
     @Transactional
     public ServiceResult removeTag(Integer houseId, String tag) {
+        House house = houseMapper.selectByPrimaryKey(houseId);
+
+        if (house == null) {
+            return new ServiceResult(false);
+        }
+
         List<HouseTag> houseTags = findTagByHouseIdAndTag(houseId, tag);
         if (houseTags != null && !houseTags.isEmpty()) {
             deleteByHouseIdAndTag(houseId,tag);
             return new ServiceResult(true);
         }
+
+        if (!indexEsAndCheck(house)) return new ServiceResult(false);
+
         return new ServiceResult(false,"not found");
     }
 
     @Override
     @Transactional
     public ServiceResult addTag(Integer houseId, String tag) {
+
+        House house = houseMapper.selectByPrimaryKey(houseId);
+
+        if (house == null) {
+            return new ServiceResult(false);
+        }
+
         List<HouseTag> tagsByHouseId = findTagsByHouseId(houseId);
         for (HouseTag houseTag : tagsByHouseId) {
             if (houseTag.getName().equals(tag)) {
@@ -252,6 +285,9 @@ public class HouseService implements IHouseService {
         }
         HouseTag houseTag = new HouseTag(houseId, tag);
         houseTagMapper.insert(houseTag);
+
+        if (!indexEsAndCheck(house)) return new ServiceResult(false);
+
         return new ServiceResult(true);
     }
 
@@ -273,6 +309,9 @@ public class HouseService implements IHouseService {
         }
         house.setStatus(status);
         houseMapper.updateByPrimaryKey(house);
+
+        if (!indexEsAndCheck(house)) return new ServiceResult(false);
+
         return new ServiceResult(true);
     }
 

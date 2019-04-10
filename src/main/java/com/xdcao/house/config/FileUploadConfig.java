@@ -1,6 +1,7 @@
 package com.xdcao.house.config;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.qiniu.common.Zone;
 import com.qiniu.storage.BucketManager;
 import com.qiniu.storage.UploadManager;
@@ -91,7 +92,7 @@ public class FileUploadConfig {
 
     @Bean
     public Gson gson() {
-        return new Gson();
+        return new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
     }
 
 
