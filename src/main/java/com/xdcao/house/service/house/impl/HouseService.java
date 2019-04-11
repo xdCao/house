@@ -14,6 +14,7 @@ import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.house.IHouseService;
 import com.xdcao.house.service.house.IPictureService;
 import com.xdcao.house.service.house.ISubwayService;
+import com.xdcao.house.service.search.HouseIndexMessage;
 import com.xdcao.house.service.search.ISearchService;
 import com.xdcao.house.web.dto.HouseDTO;
 import com.xdcao.house.web.dto.HouseDetailDTO;
@@ -140,10 +141,13 @@ public class HouseService implements IHouseService {
 
     private boolean indexEsAndCheck(House house) {
         if (house.getStatus() == HouseStatus.PASSES.getValue()) {
-            boolean index = searchService.index(house.getId());
-            return index;
+//            boolean index = searchService.index(house.getId());
+            searchService.sendIndexMessage(house.getId(), 0, HouseIndexMessage.INDEX);
+//            return index;
+            return true;
         } else {
-            searchService.remove(house.getId());
+            searchService.sendIndexMessage(house.getId(), 0, HouseIndexMessage.REMOVE);
+//            searchService.remove(house.getId());
             return true;
         }
     }

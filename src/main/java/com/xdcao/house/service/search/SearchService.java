@@ -1,5 +1,7 @@
 package com.xdcao.house.service.search;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.house.IHouseService;
@@ -21,7 +23,11 @@ import org.modelmapper.internal.bytebuddy.asm.Advice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 import static com.xdcao.house.service.search.HouseIndexKey.HOUSE_ID;
 
@@ -39,6 +45,8 @@ public class SearchService implements ISearchService {
 
     private static final String INDEX_TYPE = "house";
 
+    private static final String INDEX_TOPIC = "house_build";
+
     @Autowired
     private IHouseService houseService;
 
@@ -50,6 +58,68 @@ public class SearchService implements ISearchService {
 
     @Autowired
     private Gson gson;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private KafkaTemplate<String,String> kafkaTemplate;
+
+    @KafkaListener(topics = INDEX_TOPIC)
+    private void handleMessage(String content) {
+        try {
+            HouseIndexMessage mess = objectMapper.readValue(content, HouseIndexMessage.class);
+            switch (mess.getOperation()) {
+                case HouseIndexMessage.INDEX:
+                    createOrUpdateIndex(mess);
+                    break;
+                case HouseIndexMessage.REMOVE:
+                    remove(mess);
+                    break;
+                    default:
+                        LOGGER.error("Not supported message {}", mess.toString());
+
+            }
+        } catch (IOException e) {
+            LOGGER.error("Cannot parse json for "+content, e);
+        }
+    }
+
+    public void sendIndexMessage(Integer houseId, int retry, String operation) {
+        if (retry > HouseIndexMessage.MAX_RETRY) {
+            LOGGER.error("Retry times more than 3 for house {} Please check it", houseId);
+            return;
+        }
+
+        HouseIndexMessage message = new HouseIndexMessage();
+        message.setHouseId(Long.valueOf(houseId));
+        message.setOperation(operation);
+        message.setRetry(retry);
+
+        try {
+            kafkaTemplate.send(INDEX_TOPIC,objectMapper.writeValueAsString(message));
+        } catch (JsonProcessingException e) {
+            LOGGER.error("Json encode error for {}", message);
+        }
+    }
+
+    private void createOrUpdateIndex(HouseIndexMessage message) {
+        if (message.getHouseId() != null) {
+            boolean success = index(Math.toIntExact(message.getHouseId()));
+            if (!success) {
+                sendIndexMessage(Math.toIntExact(message.getHouseId()), message.getRetry()+1, message.getOperation());
+            }
+        }
+    }
+
+    private void remove(HouseIndexMessage message) {
+        if (message.getHouseId() != null) {
+            boolean success = remove((int) (long) message.getHouseId());
+            if (!success) {
+                sendIndexMessage(Math.toIntExact(message.getHouseId()), message.getRetry()+1, message.getOperation());
+            }
+        }
+    }
 
     @Override
     public boolean index(Integer houseId) {
@@ -111,7 +181,7 @@ public class SearchService implements ISearchService {
 
 
     @Override
-    public void remove(Integer houseId) {
+    public boolean remove(Integer houseId) {
         DeleteByQueryRequestBuilder builder = DeleteByQueryAction.INSTANCE.newRequestBuilder(client)
                 .filter(QueryBuilders.termQuery(HOUSE_ID, houseId))
                 .source(INDEX_NAME);
@@ -119,6 +189,7 @@ public class SearchService implements ISearchService {
         BulkByScrollResponse response = builder.get();
         long deleted = response.getDeleted();
         LOGGER.debug("DELETE house {} , {}", houseId, deleted);
+        return deleted > 0;
     }
 
     @Override

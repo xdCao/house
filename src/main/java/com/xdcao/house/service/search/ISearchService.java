@@ -10,7 +10,7 @@ public interface ISearchService {
 
     boolean index(Integer houseId);
 
-    void remove(Integer houseId);
+    boolean remove(Integer houseId);
 
     boolean create(HouseIndexTemplate template);
 
@@ -18,6 +18,6 @@ public interface ISearchService {
 
     boolean deleteAndCreate(int totalHit, HouseIndexTemplate template);
 
-
+    void sendIndexMessage(Integer houseId, int retry, String operation);
 
 }
