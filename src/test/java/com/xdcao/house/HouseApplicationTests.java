@@ -5,8 +5,10 @@ import com.qiniu.http.Response;
 import com.xdcao.house.dao.UserMapper;
 import com.xdcao.house.entity.User;
 import com.xdcao.house.entity.UserExample;
+import com.xdcao.house.service.ServiceMultiRet;
 import com.xdcao.house.service.house.impl.QiniuService;
 import com.xdcao.house.service.search.ISearchService;
+import com.xdcao.house.web.form.RentSearch;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,6 +72,20 @@ public class HouseApplicationTests {
     public void testIndex() {
         boolean success = searchService.index(15);
         assert success;
+    }
+
+
+    @Test
+    public void testEsQuery() {
+
+        RentSearch search = new RentSearch();
+        search.setCityEnName("bj");
+        search.setStart(0);
+        search.setSize(10);
+        ServiceMultiRet<Integer> query = searchService.query(search);
+        assert query.getResult() != null;
+        assert query.getTotal() == 4;
+
     }
 
 }

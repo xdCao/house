@@ -30,9 +30,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @Author: buku.ch
@@ -319,8 +317,58 @@ public class HouseService implements IHouseService {
         return new ServiceResult(true);
     }
 
+    private List<HouseDTO> wrapperHouseResult(List<Integer> houseIds) {
+        List<HouseDTO>  result = new ArrayList<>();
+        Map<Integer,HouseDTO> idToHouseMap = new HashMap<>();
+        List<House> allHouses = findAllHouses(houseIds);
+        for (House house : allHouses) {
+            HouseDTO houseDTO = modelMapper.map(house, HouseDTO.class);
+            houseDTO.setCover(cdn_prefix+house.getCover());
+            idToHouseMap.put(house.getId(), houseDTO);
+        }
+        wrapHouseDetails(houseIds,idToHouseMap);
+
+        for (Integer houseId : houseIds) {
+            result.add(idToHouseMap.get(houseId));
+        }
+
+        return result;
+
+    }
+
+    private void wrapHouseDetails(List<Integer> houseIds, Map<Integer, HouseDTO> idToHouseMap) {
+        for (Integer houseId : houseIds) {
+            HouseDetailDTO houseDetail = findHouseDetailByHouseId(houseId);
+            idToHouseMap.get(houseId).setHouseDetail(houseDetail);
+        }
+    }
+
+    private List<House> findAllHouses(List<Integer> ids) {
+        List<House> result = new ArrayList<>();
+        for (Integer id : ids) {
+            House house = houseMapper.selectByPrimaryKey(id);
+            if (house != null) {
+                result.add(house);
+            }
+        }
+        return result;
+    }
+
     @Override
     public ServiceMultiRet<HouseDTO> query(RentSearch rentSearch) {
+
+        if (rentSearch.getKeywords() != null && !rentSearch.getKeywords().isEmpty()) {
+            ServiceMultiRet<Integer> query = searchService.query(rentSearch);
+            if (query.getTotal() == 0) {
+                return new ServiceMultiRet<>(0, new ArrayList<>());
+            }
+            return new ServiceMultiRet<>(query.getTotal(), wrapperHouseResult(query.getResult()));
+        }
+
+        return dbQuery(rentSearch);
+    }
+
+    private ServiceMultiRet<HouseDTO> dbQuery(RentSearch rentSearch) {
         PageHelper.startPage(rentSearch.getStart(), rentSearch.getSize());
         HouseExample example = new HouseExample();
         String orderColumn = HouseSort.getSortKey(rentSearch.getOrderBy());

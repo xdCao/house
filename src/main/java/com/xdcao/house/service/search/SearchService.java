@@ -3,21 +3,29 @@ package com.xdcao.house.service.search;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.xdcao.house.base.HouseSort;
+import com.xdcao.house.base.RentValueBlock;
+import com.xdcao.house.service.ServiceMultiRet;
 import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.house.IHouseService;
 import com.xdcao.house.web.dto.HouseDTO;
+import com.xdcao.house.web.form.RentSearch;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.reindex.BulkByScrollResponse;
 import org.elasticsearch.index.reindex.DeleteByQueryAction;
 import org.elasticsearch.index.reindex.DeleteByQueryRequestBuilder;
 import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.SortOrder;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.internal.bytebuddy.asm.Advice;
 import org.slf4j.Logger;
@@ -28,8 +36,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import static com.xdcao.house.service.search.HouseIndexKey.HOUSE_ID;
+import static com.xdcao.house.service.search.HouseIndexKey.*;
 
 /**
  * @Author: buku.ch
@@ -228,6 +238,81 @@ public class SearchService implements ISearchService {
             LOGGER.warn("Need deleted{}, actually delete{}", totalHit, deleted);
         }
         return create(template);
+    }
+
+    @Override
+    public ServiceMultiRet<Integer> query(RentSearch rentSearch) {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        boolQueryBuilder.filter(QueryBuilders.termQuery(HouseIndexKey.CITY_EN_NAME, rentSearch.getCityEnName()));
+        if (rentSearch.getRegionEnName() != null && !"*".equals(rentSearch.getRegionEnName())) {
+            boolQueryBuilder.filter(QueryBuilders.termQuery(HouseIndexKey.REGION_EN_NAME, rentSearch.getRegionEnName()));
+        }
+
+        RentValueBlock area = RentValueBlock.matchArea(rentSearch.getAreaBlock());
+        RentValueBlock price = RentValueBlock.matchPrice(rentSearch.getPriceBlock());
+
+        if (!RentValueBlock.ALL.equals(area)) {
+            RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(AREA);
+            if (area.getMax() > 0) {
+                rangeQueryBuilder.lte(area.getMax());
+            }
+            if (area.getMin() > 0) {
+                rangeQueryBuilder.gte(area.getMin());
+            }
+            boolQueryBuilder.filter(rangeQueryBuilder);
+        }
+
+        if (!RentValueBlock.ALL.equals(price)) {
+            RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(PRICE);
+            if (price.getMax() > 0) {
+                rangeQueryBuilder.lte(price.getMax());
+            }
+            if (price.getMin() > 0) {
+                rangeQueryBuilder.gte(price.getMin());
+            }
+            boolQueryBuilder.filter(rangeQueryBuilder);
+        }
+
+        if (rentSearch.getDirection() > 0) {
+            boolQueryBuilder.filter(QueryBuilders.termQuery(DIRECTION, rentSearch.getDirection()));
+        }
+
+        if (rentSearch.getRentWay() > -1) {
+            boolQueryBuilder.filter(QueryBuilders.termQuery(RENT_WAY, rentSearch.getRentWay()));
+        }
+
+        boolQueryBuilder.must(QueryBuilders.multiMatchQuery(rentSearch.getKeywords(),
+                HouseIndexKey.TITLE,
+                HouseIndexKey.TRAFFIC,
+                HouseIndexKey.DISTRICT,
+                ROUND_SERVICE,
+                SUBWAY_LINE_NAME,
+                SUBAWAY_STATION_NAME));
+
+        SearchRequestBuilder searchRequestBuilder = this.client.prepareSearch(INDEX_NAME)
+                .setTypes(INDEX_TYPE)
+                .setQuery(boolQueryBuilder)
+                .addSort(rentSearch.getOrderBy(), SortOrder.fromString(rentSearch.getOrderDirection()))
+                .setFrom(rentSearch.getStart())
+                .setSize(rentSearch.getSize());
+
+        LOGGER.debug(searchRequestBuilder.toString());
+
+        List<Integer> houseIds = new ArrayList<>();
+        SearchResponse searchResponse = searchRequestBuilder.get();
+        if (searchResponse.status() != RestStatus.OK) {
+            LOGGER.error("Search status is not OK for {}", searchRequestBuilder);
+            return new ServiceMultiRet<>(0, houseIds);
+        }
+
+        SearchHit[] hits = searchResponse.getHits().getHits();
+
+        for (SearchHit hit : hits) {
+            houseIds.add((Integer) hit.getSourceAsMap().get(HOUSE_ID));
+        }
+
+        return new ServiceMultiRet<Integer>(Math.toIntExact(searchResponse.getHits().totalHits), houseIds);
+
     }
 
 
