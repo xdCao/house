@@ -1,5 +1,6 @@
 package com.xdcao.house.service.house;
 
+import com.google.common.collect.Lists;
 import com.xdcao.house.entity.HouseTag;
 import com.xdcao.house.service.ServiceMultiRet;
 import com.xdcao.house.service.ServiceResult;
@@ -40,4 +41,6 @@ public interface IHouseService {
     ServiceResult updateStatus(Integer id, int status);
 
     ServiceMultiRet<HouseDTO> query(RentSearch rentSearch);
+
+    List<Integer> findAll();
 }

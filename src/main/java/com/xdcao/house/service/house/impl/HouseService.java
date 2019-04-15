@@ -2,6 +2,7 @@ package com.xdcao.house.service.house.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.google.common.collect.Lists;
 import com.xdcao.house.base.HouseSort;
 import com.xdcao.house.base.HouseStatus;
 import com.xdcao.house.base.LoginUserUtil;
@@ -366,6 +367,17 @@ public class HouseService implements IHouseService {
         }
 
         return dbQuery(rentSearch);
+    }
+
+    @Override
+    public List<Integer> findAll() {
+        List<House> houses = houseMapper.selectByExample(new HouseExample());
+        List<Integer> ids = new ArrayList<Integer>();
+        for (House house : houses) {
+            ids.add(house.getId());
+        }
+
+        return ids;
     }
 
     private ServiceMultiRet<HouseDTO> dbQuery(RentSearch rentSearch) {

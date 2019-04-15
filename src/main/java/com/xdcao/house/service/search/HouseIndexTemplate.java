@@ -56,6 +56,8 @@ public class HouseIndexTemplate {
 
     private Integer rentWay;
 
+    private List<HouseSuggest> suggest;
+
     public Long getHouseId() {
         return houseId;
     }
@@ -214,5 +216,13 @@ public class HouseIndexTemplate {
 
     public void setRentWay(Integer rentWay) {
         this.rentWay = rentWay;
+    }
+
+    public List<HouseSuggest> getSuggest() {
+        return suggest;
+    }
+
+    public void setSuggest(List<HouseSuggest> suggests) {
+        this.suggest = suggests;
     }
 }

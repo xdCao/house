@@ -1,7 +1,10 @@
 package com.xdcao.house.service.search;
 
 import com.xdcao.house.service.ServiceMultiRet;
+import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.web.form.RentSearch;
+
+import java.util.List;
 
 /**
  * @Author: buku.ch
@@ -11,7 +14,9 @@ import com.xdcao.house.web.form.RentSearch;
 
 public interface ISearchService {
 
-    boolean index(Integer houseId);
+    boolean index(Integer houseId, boolean shouldSuggest);
+
+    boolean indexWithOutSuggest(Integer houseId);
 
     boolean remove(Integer houseId);
 
@@ -25,4 +30,5 @@ public interface ISearchService {
 
     void sendIndexMessage(Integer houseId, int retry, String operation);
 
+    ServiceResult<List<String>> suggest(String prefix);
 }

@@ -10,6 +10,7 @@ import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.house.IAddressService;
 import com.xdcao.house.service.house.IHouseService;
 import com.xdcao.house.service.house.ISubwayService;
+import com.xdcao.house.service.search.ISearchService;
 import com.xdcao.house.service.user.IUserService;
 import com.xdcao.house.web.dto.HouseDTO;
 import com.xdcao.house.web.dto.UserDTO;
@@ -25,6 +26,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,6 +48,24 @@ public class HouseController {
 
     @Autowired
     private IUserService userService;
+
+    @Autowired
+    private ISearchService searchService;
+
+    /*自动补全接口*/
+    @GetMapping("rent/house/autocomplete")
+    @ResponseBody
+    public ApiResponse autoComplete(@RequestParam(value = "prefix") String prefix) {
+        if (prefix.isEmpty()) {
+            return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
+        }
+
+        ServiceResult<List<String>> suggest = searchService.suggest(prefix);
+
+        return new ApiResponse(suggest.getResult());
+
+    }
+
 
     /*获取城市列表*/
     @GetMapping("address/support/cities")
@@ -168,6 +188,21 @@ public class HouseController {
 
         return "house-detail";
 
+    }
+
+    @RequestMapping("/indexAll")
+    @ResponseBody
+    public ApiResponse indexAll() {
+        int count = 0;
+        List<Integer> all = houseService.findAll();
+        for (Integer integer : all) {
+            boolean success = searchService.indexWithOutSuggest(integer);
+            if (success) {
+                count++;
+            }
+        }
+
+        return new ApiResponse(count);
     }
 
 

@@ -70,7 +70,7 @@ public class HouseApplicationTests {
 
     @Test
     public void testIndex() {
-        boolean success = searchService.index(15);
+        boolean success = searchService.index(15,false);
         assert success;
     }
 
