@@ -23,6 +23,10 @@ public class SupportAddressDTO {
 
     private String level;
 
+    private Double baiduMapLng;
+
+    private Double baiduMapLat;
+
     public Integer getId() {
         return id;
     }
@@ -61,5 +65,21 @@ public class SupportAddressDTO {
 
     public void setLevel(String level) {
         this.level = level;
+    }
+
+    public Double getBaiduMapLng() {
+        return baiduMapLng;
+    }
+
+    public void setBaiduMapLng(Double baiduMapLng) {
+        this.baiduMapLng = baiduMapLng;
+    }
+
+    public Double getBaiduMapLat() {
+        return baiduMapLat;
+    }
+
+    public void setBaiduMapLat(Double baiduMapLat) {
+        this.baiduMapLat = baiduMapLat;
     }
 }

@@ -2,6 +2,8 @@ package com.xdcao.house.service.house;
 
 import com.xdcao.house.entity.SupportAddress;
 import com.xdcao.house.service.ServiceMultiRet;
+import com.xdcao.house.service.ServiceResult;
+import com.xdcao.house.service.search.BaiduMapLocation;
 import com.xdcao.house.web.controller.house.SupportAddressDTO;
 
 import java.util.List;
@@ -26,4 +28,7 @@ public interface IAddressService {
     SupportAddressDTO findCity(String city);
 
     SupportAddressDTO findRegion(String region);
+
+    /*根据城市和具体地址获取百度地图的经纬度*/
+    ServiceResult<BaiduMapLocation> getBaiduMapLocation(String city, String address);
 }

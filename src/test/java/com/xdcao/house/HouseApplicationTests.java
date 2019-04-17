@@ -6,7 +6,10 @@ import com.xdcao.house.dao.UserMapper;
 import com.xdcao.house.entity.User;
 import com.xdcao.house.entity.UserExample;
 import com.xdcao.house.service.ServiceMultiRet;
+import com.xdcao.house.service.ServiceResult;
+import com.xdcao.house.service.house.IAddressService;
 import com.xdcao.house.service.house.impl.QiniuService;
+import com.xdcao.house.service.search.BaiduMapLocation;
 import com.xdcao.house.service.search.ISearchService;
 import com.xdcao.house.web.form.RentSearch;
 import org.junit.Assert;
@@ -33,6 +36,9 @@ public class HouseApplicationTests {
 
     @Autowired
     private ISearchService searchService;
+
+    @Autowired
+    private IAddressService addressService;
 
     @Test
     public void contextLoads() {
@@ -86,6 +92,17 @@ public class HouseApplicationTests {
         assert query.getResult() != null;
         assert query.getTotal() == 4;
 
+    }
+
+    @Test
+    public void testBaiduMap() {
+        String city = "西安";
+        String address = "西安市雁塔区太白南路2号西安电子科技大学";
+        ServiceResult<BaiduMapLocation> baiduMapLocation = addressService.getBaiduMapLocation(city, address);
+        if (baiduMapLocation.isSuccess()) {
+            System.out.println("成功");
+        }
+        System.out.println(baiduMapLocation.getMessage());
     }
 
 }

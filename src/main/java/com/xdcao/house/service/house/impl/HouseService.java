@@ -20,10 +20,7 @@ import com.xdcao.house.service.search.ISearchService;
 import com.xdcao.house.web.dto.HouseDTO;
 import com.xdcao.house.web.dto.HouseDetailDTO;
 import com.xdcao.house.web.dto.HousePictureDTO;
-import com.xdcao.house.web.form.DataTableSearch;
-import com.xdcao.house.web.form.HouseForm;
-import com.xdcao.house.web.form.PhotoForm;
-import com.xdcao.house.web.form.RentSearch;
+import com.xdcao.house.web.form.*;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -378,6 +375,31 @@ public class HouseService implements IHouseService {
         }
 
         return ids;
+    }
+
+    @Override
+    public ServiceMultiRet<HouseDTO> wholeMapQuery(MapSearch mapSearch) {
+
+        ServiceMultiRet<Integer> ids = searchService.mapQuery(mapSearch.getCityEnName(),mapSearch.getOrderBy(),mapSearch.getOrderDirection(),mapSearch.getStart(),mapSearch.getSize());
+        if (ids.getTotal() == 0 ) {
+            return new ServiceMultiRet<>(0, new ArrayList<>());
+        }
+        List<HouseDTO> houseDTOS = wrapperHouseResult(ids.getResult());
+        return new ServiceMultiRet<>(ids.getTotal(), houseDTOS);
+
+
+    }
+
+    @Override
+    public ServiceMultiRet<HouseDTO> boundMapQuery(MapSearch mapSearch) {
+        ServiceMultiRet<Integer> ret = searchService.mapQuery(mapSearch);
+        if (ret.getTotal() == 0){
+            return new ServiceMultiRet<>(0, new ArrayList<>());
+        }
+
+        List<HouseDTO> houseDTOS = wrapperHouseResult(ret.getResult());
+
+        return new ServiceMultiRet<>(ret.getTotal(), houseDTOS);
     }
 
     private ServiceMultiRet<HouseDTO> dbQuery(RentSearch rentSearch) {

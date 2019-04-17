@@ -10,22 +10,20 @@ import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.house.IAddressService;
 import com.xdcao.house.service.house.IHouseService;
 import com.xdcao.house.service.house.ISubwayService;
+import com.xdcao.house.service.search.HouseBucketDTO;
 import com.xdcao.house.service.search.ISearchService;
 import com.xdcao.house.service.user.IUserService;
 import com.xdcao.house.web.dto.HouseDTO;
+import com.xdcao.house.web.form.MapSearch;
 import com.xdcao.house.web.dto.UserDTO;
-import com.xdcao.house.web.form.HouseForm;
 import com.xdcao.house.web.form.RentSearch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
-import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -51,6 +49,50 @@ public class HouseController {
 
     @Autowired
     private ISearchService searchService;
+
+    @GetMapping("rent/house/map/houses")
+    @ResponseBody
+    public ApiResponse rentMapHouses(@ModelAttribute MapSearch mapSearch) {
+        if (mapSearch.getCityEnName() == null) {
+            return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
+        }
+
+        ServiceMultiRet<HouseDTO> wholeMapQuery;
+
+        if (mapSearch.getLevel() < 13) {
+            wholeMapQuery = houseService.wholeMapQuery(mapSearch);
+        } else {
+            wholeMapQuery = houseService.boundMapQuery(mapSearch);
+        }
+
+        ApiResponse apiResponse = new ApiResponse(wholeMapQuery.getResult());
+        apiResponse.setMore(wholeMapQuery.getTotal() > (mapSearch.getStart()+mapSearch.getSize()));
+        return apiResponse;
+
+    }
+
+    @GetMapping("rent/house/map")
+    public String rentMapPage(@RequestParam(value = "cityEnName") String cityEnName,
+                              Model model,
+                              HttpSession session,
+                              RedirectAttributes redirectAttributes) {
+        SupportAddressDTO city = addressService.findCity(cityEnName);
+        if (city == null) {
+            redirectAttributes.addAttribute("msg", "must_chose_city");
+            return "redirect:/index";
+        }else {
+            session.setAttribute("cityName", city.getEnName());
+            model.addAttribute("city", city);
+
+            ServiceMultiRet<HouseBucketDTO> mapAggregate = searchService.mapAggregate(cityEnName);
+            model.addAttribute("total", mapAggregate.getTotal());
+            model.addAttribute("aggData", mapAggregate.getResult());
+
+            ServiceMultiRet<SupportAddressDTO> regions = addressService.findAllRegionsByCityName(cityEnName);
+            model.addAttribute("regions",regions.getResult());
+            return "rent-map";
+        }
+    }
 
     /*自动补全接口*/
     @GetMapping("rent/house/autocomplete")
@@ -184,7 +226,8 @@ public class HouseController {
         model.addAttribute("city", city);
         model.addAttribute("region", region);
         /*聚合数据*/
-        model.addAttribute("houseCountInDistrict", 0);
+        ServiceResult<Long> aggResult = searchService.aggregateDistrictHouse(city.getEnName(), region.getEnName(), houseDTO.getDistrict());
+        model.addAttribute("houseCountInDistrict", aggResult.getResult());
 
         return "house-detail";
 

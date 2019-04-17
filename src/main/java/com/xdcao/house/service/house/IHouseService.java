@@ -8,6 +8,7 @@ import com.xdcao.house.web.dto.HouseDTO;
 import com.xdcao.house.web.dto.HouseDetailDTO;
 import com.xdcao.house.web.form.DataTableSearch;
 import com.xdcao.house.web.form.HouseForm;
+import com.xdcao.house.web.form.MapSearch;
 import com.xdcao.house.web.form.RentSearch;
 
 import java.util.List;
@@ -43,4 +44,10 @@ public interface IHouseService {
     ServiceMultiRet<HouseDTO> query(RentSearch rentSearch);
 
     List<Integer> findAll();
+
+    /*地图查询*/
+    ServiceMultiRet<HouseDTO> wholeMapQuery(MapSearch mapSearch);
+
+    /*精确范围数据查询*/
+    ServiceMultiRet<HouseDTO> boundMapQuery(MapSearch mapSearch);
 }

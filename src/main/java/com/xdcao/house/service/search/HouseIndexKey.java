@@ -30,4 +30,7 @@ public class HouseIndexKey {
     public static final String ROUND_SERVICE = "roundService";
     public static final String RENT_WAY = "rentWay";
 
+    public static final String AGG_DISTRICT = "agg_district";
+    public static final String AGG_REGION = "agg_region";
+
 }
