@@ -368,11 +368,15 @@ public class SearchService implements ISearchService {
             success = deleteAndCreate(Math.toIntExact(totalHits), template);
         }
 
-        if (success) {
+        ServiceResult lbsUpload = addressService.lbsUpload(baiduMapLocation.getResult(), result.getTitle(), address, houseId, result.getPrice(), result.getArea());
+
+        if (!success || !lbsUpload.isSuccess()) {
+            return false;
+        } else {
             LOGGER.debug("index success with house: {}", houseId);
+            return true;
         }
 
-        return success;
     }
 
     private boolean checkSuggest(HouseIndexTemplate template, boolean should) {
@@ -397,7 +401,10 @@ public class SearchService implements ISearchService {
         BulkByScrollResponse response = builder.get();
         long deleted = response.getDeleted();
         LOGGER.debug("DELETE house {} , {}", houseId, deleted);
-        return deleted > 0;
+
+        ServiceResult result = addressService.removeLbs(houseId);
+
+        return deleted > 0 && result.isSuccess();
     }
 
     @Override

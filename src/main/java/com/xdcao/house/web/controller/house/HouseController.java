@@ -37,7 +37,7 @@ public class HouseController {
 
     @Autowired
     private IAddressService addressService;
-    
+
     @Autowired
     private ISubwayService subwayService;
 
@@ -66,7 +66,7 @@ public class HouseController {
         }
 
         ApiResponse apiResponse = new ApiResponse(wholeMapQuery.getResult());
-        apiResponse.setMore(wholeMapQuery.getTotal() > (mapSearch.getStart()+mapSearch.getSize()));
+        apiResponse.setMore(wholeMapQuery.getTotal() > (mapSearch.getStart() + mapSearch.getSize()));
         return apiResponse;
 
     }
@@ -80,7 +80,7 @@ public class HouseController {
         if (city == null) {
             redirectAttributes.addAttribute("msg", "must_chose_city");
             return "redirect:/index";
-        }else {
+        } else {
             session.setAttribute("cityName", city.getEnName());
             model.addAttribute("city", city);
 
@@ -89,7 +89,7 @@ public class HouseController {
             model.addAttribute("aggData", mapAggregate.getResult());
 
             ServiceMultiRet<SupportAddressDTO> regions = addressService.findAllRegionsByCityName(cityEnName);
-            model.addAttribute("regions",regions.getResult());
+            model.addAttribute("regions", regions.getResult());
             return "rent-map";
         }
     }
@@ -142,8 +142,8 @@ public class HouseController {
         }
         return new ApiResponse(subway.getResult());
     }
-    
-    
+
+
     /*获取地铁站*/
     @GetMapping("address/support/subway/station")
     @ResponseBody
@@ -247,7 +247,6 @@ public class HouseController {
 
         return new ApiResponse(count);
     }
-
 
 
 }

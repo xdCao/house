@@ -10,10 +10,16 @@ import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.house.IAddressService;
 import com.xdcao.house.service.search.BaiduMapLocation;
 import com.xdcao.house.web.controller.house.SupportAddressDTO;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -48,6 +54,14 @@ public class AddressService implements IAddressService {
     private static final String BAIDU_MAP_KEY = "6QtSF673D1pYl3eQkEXfwp8ZgsQpB77U";
 
     private static final String BAIDU_MAP_GEOCONV_API = "http://api.map.baidu.com/geocoder/v2/?";
+
+    private static final String LBS_CREATE_API = "http://api.map.baidu.com/geodata/v3/poi/create";
+
+    private static final String LBS_QUERY_API = "http://api.map.baidu.com/geodata/v3/poi/list?";
+
+    private static final String LBS_UPDATE_API = "http://api.map.baidu.com/geodata/v3/poi/update";
+
+    private static final String LBS_DELETE_API = "http://api.map.baidu.com/geodata/v3/poi/delete";
 
     @Autowired
     private ModelMapper modelMapper;
@@ -150,6 +164,115 @@ public class AddressService implements IAddressService {
         } catch (IOException e) {
             LOGGER.error("error to fetch baidu api", e);
             return new ServiceResult<>(false,"error to fetch baidu api");
+        }
+
+    }
+
+    @Override
+    public ServiceResult lbsUpload(BaiduMapLocation location, String title, String address, Integer houseId, int price, int area) {
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        List<NameValuePair> nvps = new ArrayList<>();
+        nvps.add(new BasicNameValuePair("latitude", String.valueOf(location.getLatitude())));
+        nvps.add(new BasicNameValuePair("longitude", String.valueOf(location.getLongtitude())));
+        nvps.add(new BasicNameValuePair("coord_type", "3"));
+        nvps.add(new BasicNameValuePair("geotable_id", "175730"));
+        nvps.add(new BasicNameValuePair("ak", BAIDU_MAP_KEY));
+        nvps.add(new BasicNameValuePair("houseId", String.valueOf(houseId)));
+        nvps.add(new BasicNameValuePair("price", String.valueOf(price)));
+        nvps.add(new BasicNameValuePair("area",String.valueOf(area)));
+        nvps.add(new BasicNameValuePair("title", title));
+        nvps.add(new BasicNameValuePair("address", address));
+
+        HttpPost post;
+
+        if (isLbsDataExists(houseId)) {
+            post = new HttpPost(LBS_UPDATE_API);
+        } else {
+            post = new HttpPost(LBS_CREATE_API);
+        }
+
+        try {
+            post.setEntity(new UrlEncodedFormEntity(nvps,"utf-8"));
+            CloseableHttpResponse response = httpClient.execute(post);
+            if (response.getStatusLine().getStatusCode() != SC_OK) {
+                LOGGER.error("lbs upload error: {}", response);
+                return new ServiceResult(false);
+            }
+            String result = EntityUtils.toString(response.getEntity(), "utf-8");
+            JsonNode jsonNode = objectMapper.readTree(result);
+            int status = jsonNode.get("status").asInt();
+            if (status == 0) {
+                return new ServiceResult(true);
+            } else {
+                LOGGER.error("lbs upload error: "+result);
+                return new ServiceResult(false);
+            }
+
+        } catch (IOException e) {
+            LOGGER.error("lbs upload error", e);
+            return new ServiceResult(false);
+        }
+
+    }
+
+    private boolean isLbsDataExists(Integer houseId){
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        StringBuilder sb = new StringBuilder(LBS_QUERY_API);
+        sb.append("geotable_id=").append("175730").append("&").append("ak=").append(BAIDU_MAP_KEY).append("&").append("houseId=").append(houseId).append(",").append(houseId);
+        HttpGet get = new HttpGet(sb.toString());
+        try {
+            HttpResponse execute = httpClient.execute(get);
+            String result = EntityUtils.toString(execute.getEntity(), "utf-8");
+            if (execute.getStatusLine().getStatusCode() != SC_OK) {
+                LOGGER.error("can not get lbs data for response: {}", execute);
+                return false;
+            }
+            JsonNode jsonNode = objectMapper.readTree(result);
+            int status = jsonNode.get("status").asInt();
+            if (status != 0) {
+                LOGGER.error("can not get lbs data for : {}", result);
+                return false;
+            } else {
+                long size = jsonNode.get("size").asLong();
+                return size > 0;
+            }
+        } catch (IOException e) {
+            LOGGER.error("can not fetch lbs http apu: ", e);
+            return false;
+        }
+    }
+
+    @Override
+    public ServiceResult removeLbs(Integer houseId) {
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+
+        List<NameValuePair> nvps = new ArrayList<>();
+        nvps.add(new BasicNameValuePair("geotable_id", "175730"));
+        nvps.add(new BasicNameValuePair("ak", BAIDU_MAP_KEY));
+        nvps.add(new BasicNameValuePair("houseId", String.valueOf(houseId)));
+        HttpPost delete = new HttpPost(LBS_DELETE_API);
+        try {
+            delete.setEntity(new UrlEncodedFormEntity(nvps,"utf-8"));
+            CloseableHttpResponse response = httpClient.execute(delete);
+            String result = EntityUtils.toString(response.getEntity(), "utf-8");
+            if (response.getStatusLine().getStatusCode() != SC_OK) {
+                LOGGER.error("remove lbs error : {}", result);
+                return new ServiceResult(false);
+            }
+
+            JsonNode jsonNode = objectMapper.readTree(result);
+            int status = jsonNode.get("status").asInt();
+            if (status != 0) {
+                LOGGER.error("remove lbs error {}",result);
+                return new ServiceResult(false);
+            }
+
+            return new ServiceResult(true);
+
+
+        } catch (IOException e) {
+            LOGGER.error("remove lbs error", e);
+            return new ServiceResult(false);
         }
 
     }
