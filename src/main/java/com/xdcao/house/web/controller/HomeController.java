@@ -1,9 +1,16 @@
 package com.xdcao.house.web.controller;
 
+import com.xdcao.house.base.ApiResponse;
+import com.xdcao.house.base.LoginUserUtil;
+import com.xdcao.house.service.ServiceResult;
+import com.xdcao.house.service.sms.ISmsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @Author: buku.ch
@@ -12,6 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 public class HomeController {
+
+    @Autowired
+    private ISmsService smsService;
 
     @RequestMapping("/")
     public String index(Model model) {
@@ -38,6 +48,21 @@ public class HomeController {
     public String common(Model model) {
 //        model.addAttribute("name", "慕课");
         return "common";
+    }
+
+    @GetMapping(value = "sms/code")
+    @ResponseBody
+    public ApiResponse smsCode(@RequestParam("telephone") String telephone) {
+        if (!LoginUserUtil.checkTelephone(telephone)) {
+            return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
+        }
+        ServiceResult<String> result = smsService.sendSms(telephone);
+        if (result.isSuccess()) {
+            return new ApiResponse(result.getResult());
+        } else {
+            return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
+        }
+
     }
 
 }

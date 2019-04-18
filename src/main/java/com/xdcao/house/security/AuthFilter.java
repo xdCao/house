@@ -45,8 +45,7 @@ public class AuthFilter extends UsernamePasswordAuthenticationFilter {
 
         User user = userService.findUserByTelephone(telephone);
         String inputCode = request.getParameter("smsCode");
-        String sessionCode = "123456";
-//        String sessionCode = smsService.getSmsCode(telephone);
+        String sessionCode = smsService.getSmsCode(telephone);
         if (Objects.equals(inputCode, sessionCode)) {
             if (user == null) {// 用户第一次用手机登录且未注册,自动注册
                 user = userService.addUserByPhone(telephone);
