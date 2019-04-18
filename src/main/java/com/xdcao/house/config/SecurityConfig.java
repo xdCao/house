@@ -1,18 +1,17 @@
 package com.xdcao.house.config;
 
-import com.xdcao.house.security.AuthProvider;
-import com.xdcao.house.security.LoginAuthFailHandler;
-import com.xdcao.house.security.LoginSuccessHandler;
-import com.xdcao.house.security.LoginUrlEntryPoint;
+import com.xdcao.house.security.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * @Author: buku.ch
@@ -32,6 +31,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     /*http权限控制*/
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        http.addFilterBefore(authFilter(), UsernamePasswordAuthenticationFilter.class);
+
         //防止出现Refused to display 'URL' in a frame because it set 'X-Frame-Options' to 'DENY' 的错
         http.headers().frameOptions().sameOrigin();
         http.csrf().disable();
@@ -71,6 +73,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public LoginAuthFailHandler authFailHandler() {
         return new LoginAuthFailHandler(urlEntryPoint());
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        AuthenticationManager authenticationManager = null;
+        try {
+            authenticationManager = super.authenticationManager();
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+        return authenticationManager;
+    }
+
+    @Bean
+    public AuthFilter authFilter() {
+        AuthFilter authFilter = new AuthFilter();
+        authFilter.setAuthenticationManager(authenticationManager());
+        authFilter.setAuthenticationFailureHandler(authFailHandler());
+        return authFilter;
+
     }
 
 

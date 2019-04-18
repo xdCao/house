@@ -20,4 +20,10 @@ public interface IUserService {
     List<Role> getRolesByUserId(Integer id);
 
     ServiceResult<UserDTO> findById(Long adminId);
+
+    User findUserByTelephone(String telephone);
+
+    /*手机号注册用户*/
+    User addUserByPhone(String telephone);
+
 }
