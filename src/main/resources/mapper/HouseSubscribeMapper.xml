@@ -5,7 +5,7 @@
     <id column="id" jdbcType="INTEGER" property="id" />
     <result column="house_id" jdbcType="INTEGER" property="houseId" />
     <result column="user_id" jdbcType="INTEGER" property="userId" />
-    <result column="desc" jdbcType="VARCHAR" property="desc" />
+    <result column="descri" jdbcType="VARCHAR" property="descri" />
     <result column="status" jdbcType="INTEGER" property="status" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="last_update_time" jdbcType="TIMESTAMP" property="lastUpdateTime" />
@@ -72,8 +72,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, house_id, user_id, desc, status, create_time, last_update_time, order_time, telephone, 
-    admin_id
+    id, house_id, user_id, descri, status, create_time, last_update_time, order_time, 
+    telephone, admin_id
   </sql>
   <select id="selectByExample" parameterType="com.xdcao.house.entity.HouseSubscribeExample" resultMap="BaseResultMap">
     select
@@ -109,11 +109,11 @@
     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into house_subscribe (house_id, user_id, desc, 
+    insert into house_subscribe (house_id, user_id, descri, 
       status, create_time, last_update_time, 
       order_time, telephone, admin_id
       )
-    values (#{houseId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{desc,jdbcType=VARCHAR}, 
+    values (#{houseId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{descri,jdbcType=VARCHAR}, 
       #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{lastUpdateTime,jdbcType=TIMESTAMP}, 
       #{orderTime,jdbcType=TIMESTAMP}, #{telephone,jdbcType=VARCHAR}, #{adminId,jdbcType=INTEGER}
       )
@@ -130,8 +130,8 @@
       <if test="userId != null">
         user_id,
       </if>
-      <if test="desc != null">
-        desc,
+      <if test="descri != null">
+        descri,
       </if>
       <if test="status != null">
         status,
@@ -159,8 +159,8 @@
       <if test="userId != null">
         #{userId,jdbcType=INTEGER},
       </if>
-      <if test="desc != null">
-        #{desc,jdbcType=VARCHAR},
+      <if test="descri != null">
+        #{descri,jdbcType=VARCHAR},
       </if>
       <if test="status != null">
         #{status,jdbcType=INTEGER},
@@ -200,8 +200,8 @@
       <if test="record.userId != null">
         user_id = #{record.userId,jdbcType=INTEGER},
       </if>
-      <if test="record.desc != null">
-        desc = #{record.desc,jdbcType=VARCHAR},
+      <if test="record.descri != null">
+        descri = #{record.descri,jdbcType=VARCHAR},
       </if>
       <if test="record.status != null">
         status = #{record.status,jdbcType=INTEGER},
@@ -231,7 +231,7 @@
     set id = #{record.id,jdbcType=INTEGER},
       house_id = #{record.houseId,jdbcType=INTEGER},
       user_id = #{record.userId,jdbcType=INTEGER},
-      desc = #{record.desc,jdbcType=VARCHAR},
+      descri = #{record.descri,jdbcType=VARCHAR},
       status = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       last_update_time = #{record.lastUpdateTime,jdbcType=TIMESTAMP},
@@ -251,8 +251,8 @@
       <if test="userId != null">
         user_id = #{userId,jdbcType=INTEGER},
       </if>
-      <if test="desc != null">
-        desc = #{desc,jdbcType=VARCHAR},
+      <if test="descri != null">
+        descri = #{descri,jdbcType=VARCHAR},
       </if>
       <if test="status != null">
         status = #{status,jdbcType=INTEGER},
@@ -279,7 +279,7 @@
     update house_subscribe
     set house_id = #{houseId,jdbcType=INTEGER},
       user_id = #{userId,jdbcType=INTEGER},
-      desc = #{desc,jdbcType=VARCHAR},
+      descri = #{descri,jdbcType=VARCHAR},
       status = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       last_update_time = #{lastUpdateTime,jdbcType=TIMESTAMP},

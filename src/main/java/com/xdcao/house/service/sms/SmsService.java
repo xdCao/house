@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.rmi.ServerException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -37,25 +38,28 @@ public class SmsService implements ISmsService, InitializingBean {
     @Value("${aliyun.sms.template.code}")
     private String templateCode;
 
-    public static final String INTERVAL_KEY = "SMS::CODE::INTERVAL::";
-    public static final String CODE_KEY = "SMS::CODE::CONTENT::";
+    private static final String INTERVAL_KEY = "SMS::CODE::INTERVAL::";
+    private static final String CODE_KEY = "SMS::CODE::CONTENT::";
+
+    private static final Random random = new Random();
+    private static final String[] NUMS = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
 
     private IAcsClient acsClient;
 
     @Autowired
-    private RedisTemplate<String,String> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
 
     @Autowired
     private Gson gson;
 
     @Override
     public ServiceResult<String> sendSms(String phone) {
-        String gapKey = INTERVAL_KEY+phone;
+        String gapKey = INTERVAL_KEY + phone;
         String result = redisTemplate.opsForValue().get(gapKey);
         if (result != null) {
-            return new ServiceResult<>(false,"请求次数太频繁");
+            return new ServiceResult<>(false, "请求次数太频繁");
         }
-        String code = "123456";
+        String code = generateRandomSmsCode();
         String templateParam = String.format("{\"code\":\"%s\"}", code);
         CommonRequest request = new CommonRequest();
         //request.setProtocol(ProtocolType.HTTPS);
@@ -87,22 +91,22 @@ public class SmsService implements ISmsService, InitializingBean {
         }
 
         if (success) {
-            redisTemplate.opsForValue().set(gapKey,code,60, TimeUnit.SECONDS);
-            redisTemplate.opsForValue().set(CODE_KEY+phone, code,600,TimeUnit.SECONDS);
-            return new ServiceResult<String>(true,"", code);
+            redisTemplate.opsForValue().set(gapKey, code, 60, TimeUnit.SECONDS);
+            redisTemplate.opsForValue().set(CODE_KEY + phone, code, 600, TimeUnit.SECONDS);
+            return new ServiceResult<String>(true, "", code);
         } else {
-            return new ServiceResult<>(false,"服务忙,请稍后重试");
+            return new ServiceResult<>(false, "服务忙,请稍后重试");
         }
     }
 
     @Override
     public String getSmsCode(String phone) {
-        return redisTemplate.opsForValue().get(CODE_KEY+phone);
+        return redisTemplate.opsForValue().get(CODE_KEY + phone);
     }
 
     @Override
     public void removeSmsCode(String phone) {
-        redisTemplate.delete(CODE_KEY+phone);
+        redisTemplate.delete(CODE_KEY + phone);
     }
 
     @Override
@@ -115,5 +119,14 @@ public class SmsService implements ISmsService, InitializingBean {
         String domain = "dysmsapi.aliyuncs.com";
         DefaultProfile.addEndpoint("cn-hangzhou", product, domain);
         acsClient = new DefaultAcsClient(profile);
+    }
+
+    private static String generateRandomSmsCode() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 6; i++) {
+            int index = random.nextInt(10);
+            sb.append(NUMS[index]);
+        }
+        return sb.toString();
     }
 }

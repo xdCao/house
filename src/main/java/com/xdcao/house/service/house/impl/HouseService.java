@@ -2,7 +2,6 @@ package com.xdcao.house.service.house.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.google.common.collect.Lists;
 import com.xdcao.house.base.HouseSort;
 import com.xdcao.house.base.HouseStatus;
 import com.xdcao.house.base.LoginUserUtil;
@@ -10,6 +9,7 @@ import com.xdcao.house.dao.HouseDetailMapper;
 import com.xdcao.house.dao.HouseMapper;
 import com.xdcao.house.dao.HouseTagMapper;
 import com.xdcao.house.entity.*;
+import com.xdcao.house.service.ISubscribeService;
 import com.xdcao.house.service.ServiceMultiRet;
 import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.house.IHouseService;
@@ -58,6 +58,9 @@ public class HouseService implements IHouseService {
 
     @Autowired
     private ISearchService searchService;
+
+    @Autowired
+    private ISubscribeService subscribeService;
 
     @Value("${qiniu.cdn.prefix}")
     private String cdn_prefix;
@@ -208,6 +211,13 @@ public class HouseService implements IHouseService {
         houseDTO.setHouseDetail(houseDetail);
         houseDTO.setPictures(pictureDTOS);
         houseDTO.setTags(tagStrs);
+
+        if (LoginUserUtil.getLoginUserId() > 0) {
+            HouseSubscribe houseSubscribe = subscribeService.findByHouseIdAndUserId(id, LoginUserUtil.getLoginUserId());
+            if (houseSubscribe != null) {
+                houseDTO.setSubscribeStatus(houseSubscribe.getStatus());
+            }
+        }
 
         return new ServiceResult<>(true, "ok", houseDTO);
     }

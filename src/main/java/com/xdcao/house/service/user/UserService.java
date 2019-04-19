@@ -1,6 +1,7 @@
 package com.xdcao.house.service.user;
 
 import com.google.common.collect.Lists;
+import com.xdcao.house.base.LoginUserUtil;
 import com.xdcao.house.dao.RoleMapper;
 import com.xdcao.house.dao.UserMapper;
 import com.xdcao.house.entity.Role;
@@ -8,13 +9,13 @@ import com.xdcao.house.entity.RoleExample;
 import com.xdcao.house.entity.User;
 import com.xdcao.house.entity.UserExample;
 import com.xdcao.house.service.ServiceResult;
-import com.xdcao.house.service.user.IUserService;
 import com.xdcao.house.web.dto.UserDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,8 @@ public class UserService implements IUserService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public User findUserByName(String userName) {
@@ -123,5 +126,58 @@ public class UserService implements IUserService {
         user.setAuthorityList(Lists.newArrayList(new SimpleGrantedAuthority("ROLE_USER")));
 
         return user;
+    }
+
+    @Override
+    public ServiceResult updateProfile(String profile, String value) {
+        Integer userId = LoginUserUtil.getLoginUserId();
+        if (profile == null || profile.isEmpty()) {
+            return new ServiceResult(false);
+        }
+
+        switch (profile) {
+            case "name":
+                updateUserName(userId, value);
+                break;
+            case "password":
+                updateUserPassword(userId, value);
+                break;
+            case "email":
+                updateUserEmail(userId, value);
+                break;
+            default:
+                return new ServiceResult(false);
+        }
+
+        return new ServiceResult(true);
+
+    }
+
+
+    @Transactional
+    private void updateUserName(Integer userId, String name) {
+        User user = new User();
+        user.setId(userId);
+        user.setName(name);
+        userMapper.updateByPrimaryKeySelective(user);
+    }
+
+
+    @Transactional
+    private void updateUserEmail(Integer userId, String email) {
+        User user = new User();
+        user.setId(userId);
+        user.setEmail(email);
+        userMapper.updateByPrimaryKeySelective(user);
+    }
+
+
+    @Transactional
+    private void updateUserPassword(Integer userId, String password) {
+        User user = new User();
+        password = passwordEncoder.encode(password);
+        user.setId(userId);
+        user.setPassword(password);
+        userMapper.updateByPrimaryKeySelective(user);
     }
 }

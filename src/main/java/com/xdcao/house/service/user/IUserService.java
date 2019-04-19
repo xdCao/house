@@ -26,4 +26,7 @@ public interface IUserService {
     /*手机号注册用户*/
     User addUserByPhone(String telephone);
 
+    ServiceResult updateProfile(String profile, String value);
+
+
 }

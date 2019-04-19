@@ -9,8 +9,9 @@ public class HouseSubscribe {
 
     private Integer userId;
 
-    private String desc;
+    private String descri;
 
+    /*1-已加入带看清单,2-已预约看房时间,3-看房完成*/
     private Integer status;
 
     private Date createTime;
@@ -47,12 +48,12 @@ public class HouseSubscribe {
         this.userId = userId;
     }
 
-    public String getDesc() {
-        return desc;
+    public String getDescri() {
+        return descri;
     }
 
-    public void setDesc(String desc) {
-        this.desc = desc == null ? null : desc.trim();
+    public void setDescri(String descri) {
+        this.descri = descri == null ? null : descri.trim();
     }
 
     public Integer getStatus() {
