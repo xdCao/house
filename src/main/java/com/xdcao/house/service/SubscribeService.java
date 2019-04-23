@@ -9,6 +9,7 @@ import com.xdcao.house.entity.HouseSubscribe;
 import com.xdcao.house.entity.HouseSubscribeExample;
 import com.xdcao.house.service.house.IHouseService;
 import com.xdcao.house.web.dto.HouseDTO;
+import org.apache.kafka.common.security.auth.Login;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
@@ -105,6 +106,17 @@ public class SubscribeService implements ISubscribeService {
     }
 
     @Override
+    public PageInfo<HouseSubscribe> findPagesByAdminIdAndStatus(Integer userId, int status, int start, int size) {
+        PageHelper.startPage(start, size);
+        HouseSubscribeExample example = new HouseSubscribeExample();
+        example.createCriteria().andAdminIdEqualTo(userId).andStatusEqualTo(status);
+        List<HouseSubscribe> houseSubscribes = subscribeMapper.selectByExample(example);
+        PageInfo<HouseSubscribe> pageInfo = new PageInfo<>(houseSubscribes);
+        return pageInfo;
+    }
+
+
+    @Override
     @Transactional
     public ServiceResult subscribe(Integer houseId, Date orderTime, String telephone, String desc) {
         Integer userId = LoginUserUtil.getLoginUserId();
@@ -138,6 +150,49 @@ public class SubscribeService implements ISubscribeService {
         subscribeMapper.deleteByPrimaryKey(houseSubscribe.getId());
         return new ServiceResult(true);
 
+    }
+
+    @Override
+    public ServiceMultiRet<Pair<HouseDTO, HouseSubscribe>> findSubscribeList(int start, int size) {
+        List<Pair<HouseDTO,HouseSubscribe>> results = new ArrayList<>();
+        Integer userId = LoginUserUtil.getLoginUserId();
+        PageInfo<HouseSubscribe> pageInfo = findPagesByAdminIdAndStatus(userId, HouseSubscribeStatus.IN_ORDER_TIME.getValue(), start, size);
+        if (pageInfo.getSize() < 1) {
+            return new ServiceMultiRet<>(0, results);
+        }
+        List<HouseSubscribe> subscribeList = pageInfo.getList();
+        subscribeList.forEach(subscribe -> {
+            ServiceResult<HouseDTO> completeOne = houseService.findCompleteOne(subscribe.getHouseId());
+            if (completeOne.isSuccess()) {
+                results.add(Pair.of(completeOne.getResult(),subscribe));
+            }
+        });
+
+        return new ServiceMultiRet<Pair<HouseDTO, HouseSubscribe>>(Math.toIntExact(pageInfo.getTotal()), results);
+    }
+
+    @Override
+    @Transactional
+    public ServiceResult finishSubscribe(Integer houseId) {
+        Integer userId = LoginUserUtil.getLoginUserId();
+        HouseSubscribe subscribe = findByHouseIdAndAdminId(houseId,userId);
+        if (subscribe == null) {
+            return new ServiceResult(false);
+        }
+        subscribe.setStatus(HouseSubscribeStatus.FINISH.getValue());
+        subscribeMapper.updateByPrimaryKey(subscribe);
+        houseService.updateWatchTime(houseId);
+        return new ServiceResult(true);
+    }
+
+    private HouseSubscribe findByHouseIdAndAdminId(Integer houseId, Integer userId) {
+        HouseSubscribeExample example = new HouseSubscribeExample();
+        example.createCriteria().andAdminIdEqualTo(userId).andHouseIdEqualTo(houseId);
+        List<HouseSubscribe> houseSubscribes = subscribeMapper.selectByExample(example);
+        if (houseSubscribes == null || houseSubscribes.isEmpty()) {
+            return null;
+        }
+        return houseSubscribes.get(0);
     }
 
 

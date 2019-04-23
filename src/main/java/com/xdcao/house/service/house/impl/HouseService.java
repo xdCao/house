@@ -412,6 +412,14 @@ public class HouseService implements IHouseService {
         return new ServiceMultiRet<>(ret.getTotal(), houseDTOS);
     }
 
+    @Override
+    @Transactional
+    public void updateWatchTime(Integer houseId) {
+        House house = houseMapper.selectByPrimaryKey(houseId);
+        house.setWatchTimes(house.getWatchTimes()+1);
+        houseMapper.updateByPrimaryKey(house);
+    }
+
     private ServiceMultiRet<HouseDTO> dbQuery(RentSearch rentSearch) {
         PageHelper.startPage(rentSearch.getStart(), rentSearch.getSize());
         HouseExample example = new HouseExample();

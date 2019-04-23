@@ -50,4 +50,6 @@ public interface IHouseService {
 
     /*精确范围数据查询*/
     ServiceMultiRet<HouseDTO> boundMapQuery(MapSearch mapSearch);
+
+    void updateWatchTime(Integer houseId);
 }

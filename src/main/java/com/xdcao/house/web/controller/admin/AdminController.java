@@ -7,19 +7,24 @@ import com.xdcao.house.base.ApiDataTableResponse;
 import com.xdcao.house.base.ApiResponse;
 import com.xdcao.house.base.HouseStatus;
 import com.xdcao.house.base.Operation;
+import com.xdcao.house.entity.HouseSubscribe;
 import com.xdcao.house.entity.Subway;
 import com.xdcao.house.entity.SubwayStation;
 import com.xdcao.house.entity.SupportAddress;
+import com.xdcao.house.service.ISubscribeService;
 import com.xdcao.house.service.ServiceMultiRet;
 import com.xdcao.house.service.ServiceResult;
 import com.xdcao.house.service.house.*;
+import com.xdcao.house.service.user.IUserService;
 import com.xdcao.house.web.controller.house.SupportAddressDTO;
 import com.xdcao.house.web.dto.HouseDTO;
 import com.xdcao.house.web.dto.HouseDetailDTO;
 import com.xdcao.house.web.dto.QiniuPutRet;
+import com.xdcao.house.web.dto.UserDTO;
 import com.xdcao.house.web.form.DataTableSearch;
 import com.xdcao.house.web.form.HouseForm;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -55,6 +60,12 @@ public class AdminController {
 
     @Autowired
     private IPictureService pictureService;
+
+    @Autowired
+    private ISubscribeService subscribeService;
+
+    @Autowired
+    private IUserService userService;
 
     @Autowired
     private Gson gson;
@@ -282,6 +293,57 @@ public class AdminController {
         return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
 
     }
+
+    @GetMapping("/house/subscribe")
+    public String houseSubxcribe() {
+        return "admin/subscribe";
+    }
+
+    @GetMapping("/house/subscribe/list")
+    @ResponseBody
+    public ApiResponse subscribeList(@RequestParam("draw") int draw,
+                                     @RequestParam("start") int start,
+                                     @RequestParam("length") int size) {
+
+        ServiceMultiRet<Pair<HouseDTO, HouseSubscribe>> ret = subscribeService.findSubscribeList(start, size);
+
+        ApiDataTableResponse response = new ApiDataTableResponse(ApiResponse.Status.SUCCESS);
+        response.setDraw(draw);
+        response.setData(ret.getResult());
+        response.setRecordsFiltered(ret.getTotal());
+        response.setRecordsTotal(ret.getTotal());
+
+        return response;
+    }
+
+    @GetMapping("/user/{userId}")
+    @ResponseBody
+    public ApiResponse getUserInfo(@PathVariable(value = "userId") Long userId) {
+        if (userId == null || userId < 1) {
+            return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
+        }
+        ServiceResult<UserDTO> result = userService.findById(userId);
+        if (!result.isSuccess()) {
+            return new ApiResponse(ApiResponse.Status.NOT_FOUND);
+        }
+        return new ApiResponse(result.getResult());
+    }
+
+
+    @PostMapping("/finish/subscribe")
+    @ResponseBody
+    public ApiResponse finishSubscribe(@RequestParam(value = "house_id") Integer houseId) {
+        if (houseId < 1) {
+            return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
+        }
+        ServiceResult result = subscribeService.finishSubscribe(houseId);
+        if (!result.isSuccess()) {
+            return new ApiResponse(ApiResponse.Status.BAD_REQUEST);
+        }
+
+        return new ApiResponse(ApiResponse.Status.SUCCESS);
+    }
+
 
     private boolean validateSubwayInfo(HouseForm houseForm) {
         Subway subway = subwayService.findSubwaylineById(houseForm.getSubwayLineId());

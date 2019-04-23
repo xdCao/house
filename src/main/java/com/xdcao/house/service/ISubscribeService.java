@@ -24,7 +24,13 @@ public interface ISubscribeService {
 
     PageInfo<HouseSubscribe> findPagesByUserIdAndStatus(Integer userId, int status, int start, int size);
 
+    PageInfo<HouseSubscribe> findPagesByAdminIdAndStatus(Integer userId, int status, int start, int size);
+
     ServiceResult subscribe(Integer houseId, Date orderTime, String telephone, String desc);
 
     ServiceResult cancelSubscribe(Integer houseId);
+
+    ServiceMultiRet<Pair<HouseDTO, HouseSubscribe>> findSubscribeList(int start, int size);
+
+    ServiceResult finishSubscribe(Integer houseId);
 }
