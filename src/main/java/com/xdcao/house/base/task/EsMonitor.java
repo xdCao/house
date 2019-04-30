@@ -11,6 +11,8 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +35,9 @@ public class EsMonitor {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private JavaMailSender mailSender;
+
     @Scheduled(fixedDelay = 5000)
     public void healthCheck() {
 
@@ -47,10 +52,22 @@ public class EsMonitor {
                 JsonNode jsonNode = objectMapper.readTree(body);
                 String status = jsonNode.get("status").asText();
                 LOGGER.info("elasticSearch status: {}",status);
+                sendAlertMail(status);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void sendAlertMail(String message) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setFrom("xxx@163.com");
+        mailMessage.setTo("XXX@163.com");
+        mailMessage.setSubject("ES服务监控[警告]");
+        mailMessage.setText(message);
+
+        mailSender.send(mailMessage);
+
     }
 
 }
