@@ -1,10 +1,17 @@
 {
   "settings":{
-    "number_of_replicas":0
+    "number_of_replicas":0,
+    "number_of_shards": 5,
+    "index.store.type": "niofs",
+    "index.query.default_field": "title",
+    "index.unassigned.node_left.delayed_timeout": "5m"
   },
   "mappings":{
     "house":{
-      "dynamic":false,
+      "dynamic":"strict",
+      "_all": {
+        "enabled": false
+      },
       "properties":{
         "houseId":{
           "type":"integer"
